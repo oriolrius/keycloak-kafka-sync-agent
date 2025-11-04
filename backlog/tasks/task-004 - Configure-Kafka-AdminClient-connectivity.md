@@ -1,7 +1,7 @@
 ---
 id: task-004
 title: Configure Kafka AdminClient connectivity
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2025-11-04 14:34'
