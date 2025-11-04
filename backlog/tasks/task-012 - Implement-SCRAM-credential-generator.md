@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2025-11-04 18:33'
-updated_date: '2025-11-04 18:56'
+updated_date: '2025-11-04 19:00'
 labels:
   - backend
   - crypto
@@ -21,16 +21,16 @@ Create a service that generates SCRAM-SHA-256 and SCRAM-SHA-512 verifiers (store
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 ScramCredentialGenerator service created with methods for both SHA-256 and SHA-512
-- [ ] #2 Implementation follows RFC 5802 SCRAM specification
-- [ ] #3 Generates salt using SecureRandom (32 bytes)
-- [ ] #4 Computes SaltedPassword using PBKDF2 with configurable iterations (default 4096)
-- [ ] #5 Computes ClientKey = HMAC(SaltedPassword, "Client Key")
-- [ ] #6 Computes StoredKey = H(ClientKey)
-- [ ] #7 Computes ServerKey = HMAC(SaltedPassword, "Server Key")
-- [ ] #8 Returns ScramCredential object with storedKey, serverKey, salt, iterations in Base64
-- [ ] #9 Unit tests validate against known test vectors
-- [ ] #10 Unit tests verify both SHA-256 and SHA-512 mechanisms
+- [x] #1 ScramCredentialGenerator service created with methods for both SHA-256 and SHA-512
+- [x] #2 Implementation follows RFC 5802 SCRAM specification
+- [x] #3 Generates salt using SecureRandom (32 bytes)
+- [x] #4 Computes SaltedPassword using PBKDF2 with configurable iterations (default 4096)
+- [x] #5 Computes ClientKey = HMAC(SaltedPassword, "Client Key")
+- [x] #6 Computes StoredKey = H(ClientKey)
+- [x] #7 Computes ServerKey = HMAC(SaltedPassword, "Server Key")
+- [x] #8 Returns ScramCredential object with storedKey, serverKey, salt, iterations in Base64
+- [x] #9 Unit tests validate against known test vectors
+- [x] #10 Unit tests verify both SHA-256 and SHA-512 mechanisms
 <!-- AC:END -->
 
 ## Implementation Plan
