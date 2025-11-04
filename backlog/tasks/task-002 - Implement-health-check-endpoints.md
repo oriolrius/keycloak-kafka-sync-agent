@@ -28,3 +28,16 @@ Create /healthz and /readyz endpoints that check connectivity to Kafka, Keycloak
 - [ ] #5 Health checks include connection validation for each service
 - [ ] #6 Response format matches specification: {status, details:{kafka, keycloak, sqlite}}
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Research Quarkus SmallRye Health implementation approach
+2. Create KafkaHealthCheck implementing HealthCheck interface
+3. Create KeycloakHealthCheck implementing HealthCheck interface
+4. Create SQLiteHealthCheck implementing HealthCheck interface
+5. Configure health endpoint paths in application.properties (/healthz for liveness, /readyz for readiness)
+6. Test health endpoints with all services up
+7. Test health endpoints with services down (503 response)
+8. Verify JSON response format matches specification
+<!-- SECTION:PLAN:END -->
