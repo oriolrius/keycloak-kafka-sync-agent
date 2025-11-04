@@ -1,9 +1,11 @@
 ---
 id: task-004
 title: Configure Kafka AdminClient connectivity
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2025-11-04 14:34'
+updated_date: '2025-11-04 17:04'
 labels:
   - backend
   - kafka
