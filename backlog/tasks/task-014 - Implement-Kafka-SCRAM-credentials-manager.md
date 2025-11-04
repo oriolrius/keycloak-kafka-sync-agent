@@ -1,9 +1,11 @@
 ---
 id: task-014
 title: Implement Kafka SCRAM credentials manager
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2025-11-04 18:33'
+updated_date: '2025-11-04 19:10'
 labels:
   - backend
   - kafka
