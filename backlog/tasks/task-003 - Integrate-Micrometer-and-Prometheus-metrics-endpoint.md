@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2025-11-04 14:34'
-updated_date: '2025-11-04 16:51'
+updated_date: '2025-11-04 16:56'
 labels:
   - backend
   - observability
@@ -21,11 +21,11 @@ Set up Micrometer with Prometheus registry and expose /metrics endpoint. Configu
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 GET /metrics endpoint returns Prometheus exposition format
-- [ ] #2 Micrometer registry is properly configured in application.properties
-- [ ] #3 Basic JVM metrics (memory, threads, GC) are exposed
-- [ ] #4 HTTP request metrics are collected automatically
-- [ ] #5 Custom metrics infrastructure is ready for sync operations
+- [x] #1 GET /metrics endpoint returns Prometheus exposition format
+- [x] #2 Micrometer registry is properly configured in application.properties
+- [x] #3 Basic JVM metrics (memory, threads, GC) are exposed
+- [x] #4 HTTP request metrics are collected automatically
+- [x] #5 Custom metrics infrastructure is ready for sync operations
 <!-- AC:END -->
 
 ## Implementation Plan
