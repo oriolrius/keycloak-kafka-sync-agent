@@ -1,9 +1,11 @@
 ---
 id: task-006
 title: Initialize SQLite database with Flyway migrations
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2025-11-04 14:34'
+updated_date: '2025-11-04 17:28'
 labels:
   - backend
   - database
