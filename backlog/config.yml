@@ -1,4 +1,4 @@
-project_name: "keykloak-kafka-sync-agent"
+project_name: "keycloak-kafka-sync-agent"
 default_status: "To Do"
 statuses: ["To Do", "In Progress", "Done"]
 labels: []
