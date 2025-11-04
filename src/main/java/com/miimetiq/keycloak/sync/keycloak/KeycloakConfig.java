@@ -62,4 +62,10 @@ public interface KeycloakConfig {
      */
     @WithDefault("30000")
     int readTimeoutMs();
+
+    /**
+     * Webhook HMAC secret for validating incoming Keycloak events.
+     * Can be overridden with KC_WEBHOOK_HMAC_SECRET environment variable.
+     */
+    Optional<String> webhookHmacSecret();
 }
