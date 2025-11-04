@@ -1,9 +1,11 @@
 ---
 id: task-013
 title: Implement Keycloak user fetcher service
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2025-11-04 18:33'
+updated_date: '2025-11-04 19:04'
 labels:
   - backend
   - keycloak
