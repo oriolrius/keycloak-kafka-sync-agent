@@ -1,9 +1,11 @@
 ---
 id: task-003
 title: Integrate Micrometer and Prometheus metrics endpoint
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2025-11-04 14:34'
+updated_date: '2025-11-04 16:51'
 labels:
   - backend
   - observability
