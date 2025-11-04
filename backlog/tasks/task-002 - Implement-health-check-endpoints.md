@@ -1,9 +1,11 @@
 ---
 id: task-002
 title: Implement health check endpoints
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2025-11-04 14:33'
+updated_date: '2025-11-04 16:36'
 labels:
   - backend
   - observability
