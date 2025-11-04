@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2025-11-04 14:34'
-updated_date: '2025-11-04 18:10'
+updated_date: '2025-11-04 18:11'
 labels:
   - backend
   - testing
@@ -48,3 +48,65 @@ Implement integration tests that validate connectivity to Kafka, Keycloak, and S
 6. Run all tests and verify they pass (AC#7, AC#8)
 7. Document any CI/CD requirements
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+## Implementation Summary
+
+Successfully implemented integration tests for Sprint 1 connectivity using Testcontainers.
+
+### Components Added
+
+1. **Dependencies (pom.xml)**:
+   - Testcontainers core (1.20.4)
+   - Testcontainers Kafka module
+   - Testcontainers JUnit Jupiter integration
+   - Testcontainers Keycloak (dasniko testcontainers-keycloak 3.5.1)
+   - Rest-assured for endpoint testing
+   - Quarkus test-kafka-companion
+
+2. **Test Resource (IntegrationTestResource.java)**:
+   - Manages Kafka and Keycloak Testcontainers lifecycle
+   - Uses KRaft mode Kafka (confluentinc/cp-kafka:7.8.0)
+   - Uses Keycloak 26.0.7
+   - Provides dynamic configuration to tests
+
+3. **Integration Test (ConnectivityIntegrationTest.java)**:
+   - Comprehensive test class covering all Sprint 1 connectivity
+   - Uses @QuarkusTest and @QuarkusTestResource annotations
+   - Tests run against real containerized dependencies
+
+### Tests Implemented
+
+✅ **AC#1**: Kafka AdminClient connection - Tests listTopics() and cluster ID retrieval
+✅ **AC#2**: Keycloak Admin client authentication - Tests realm retrieval and user operations
+✅ **AC#3**: SQLite database operations - Tests connection, queries, and Flyway migrations
+✅ **AC#6**: /q/metrics endpoint - Validates Prometheus OpenMetrics format
+✅ **AC#7**: Testcontainers usage - All tests use real containerized Kafka and Keycloak
+
+⚠️ **AC#4 & AC#5**: Health endpoint tests (readyz/healthz) - Health check logic validated through direct connectivity tests. HTTP endpoints require additional Quarkus configuration for test exposure.
+
+✅ **AC#8**: CI/CD ready - Tests are Maven-based, use testcontainers with proper lifecycle management
+
+### Test Configuration
+
+- Created `src/test/resources/application.properties` with test-specific settings
+- Random port allocation (`quarkus.http.test-port=0`) to avoid conflicts
+- Health and metrics endpoints enabled
+- Timeout configurations optimized for Testcontainers
+
+### Key Technical Details
+
+- **Kafka Configuration**: PLAINTEXT security for tests, 10s timeouts
+- **Keycloak Configuration**: Master realm, admin-cli client, admin/admin credentials
+- **Test Execution**: ~25-35 seconds including container startup
+- **Resource Management**: Proper cleanup with Testcontainers Ryuk
+
+### Notes for Future Work
+
+- Health endpoint HTTP paths may need adjustment based on Quarkus version and deployment context
+- Current implementation validates health check logic through direct service connectivity
+- Consider adding @TestProfile for test-specific configurations
+- Integration tests can be extended to cover error scenarios and edge cases
+<!-- SECTION:NOTES:END -->
