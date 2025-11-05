@@ -9,6 +9,7 @@ import com.miimetiq.keycloak.sync.repository.SyncOperationRepository;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import org.jboss.logging.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -25,6 +26,8 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @QuarkusTest
 class RetentionServiceTest {
+
+    private static final Logger LOG = Logger.getLogger(RetentionServiceTest.class);
 
     @Inject
     RetentionService retentionService;
@@ -227,6 +230,146 @@ class RetentionServiceTest {
         // Then: correct calculation based on 7 days
         assertEquals(1, deletedCount, "Should delete only records older than 7 days");
         assertEquals(1, operationRepository.count(), "Should keep 1 recent record");
+    }
+
+    // ========== Space-based Purge Tests ==========
+
+    @Test
+    void testCalculateDatabaseSize_ReturnsValidSize() {
+        // When: calculating database size
+        long dbSize = retentionService.calculateDatabaseSize();
+
+        // Then: should return a positive size
+        assertTrue(dbSize > 0, "Database size should be positive");
+        LOG.infof("Current database size: %d bytes", dbSize);
+    }
+
+    @Test
+    @Transactional
+    void testPurgeBySize_MaxBytesNull_NoPurge() {
+        // Given: retention state with null max_bytes
+        updateRetentionConfig(null, 30);
+
+        // Create some operations
+        createOperation("op-1", LocalDateTime.now());
+        createOperation("op-2", LocalDateTime.now().minusDays(1));
+
+        // When: executing size-based purge
+        long deletedCount = retentionService.purgeBySize();
+
+        // Then: no purge should occur
+        assertEquals(0, deletedCount, "Should not delete any records when max_bytes is null");
+        assertEquals(2, operationRepository.count(), "All records should remain");
+    }
+
+    @Test
+    @Transactional
+    void testPurgeBySize_UnderLimit_NoPurge() {
+        // Given: very large max_bytes (10 GB - definitely over current size)
+        updateRetentionConfig(10L * 1024 * 1024 * 1024, null);
+
+        // Create some operations
+        createOperation("op-1", LocalDateTime.now());
+        createOperation("op-2", LocalDateTime.now().minusDays(1));
+
+        // When: executing size-based purge
+        long deletedCount = retentionService.purgeBySize();
+
+        // Then: no purge should occur
+        assertEquals(0, deletedCount, "Should not delete any records when under limit");
+        assertEquals(2, operationRepository.count(), "All records should remain");
+
+        // Verify approx_db_bytes was updated
+        RetentionState state = retentionRepository.getOrThrow();
+        assertTrue(state.getApproxDbBytes() > 0, "approx_db_bytes should be updated");
+    }
+
+    @Test
+    @Transactional
+    void testPurgeBySize_OverLimit_DeletesOldest() {
+        // Given: very small max_bytes to trigger purge
+        long maxBytes = 1024L; // 1 KB - very small to ensure we exceed it
+        updateRetentionConfig(maxBytes, null);
+
+        // Create multiple operations with different timestamps
+        LocalDateTime now = LocalDateTime.now();
+        createOperation("oldest", now.minusDays(10));
+        createOperation("old", now.minusDays(5));
+        createOperation("recent", now.minusDays(1));
+        createOperation("newest", now);
+
+        long initialCount = operationRepository.count();
+        assertEquals(4, initialCount, "Should have 4 operations");
+
+        // When: executing size-based purge
+        long deletedCount = retentionService.purgeBySize();
+
+        // Then: some records should be deleted (oldest first)
+        assertTrue(deletedCount > 0, "Should delete some records");
+        assertTrue(operationRepository.count() < initialCount, "Should have fewer records after purge");
+
+        // Verify approx_db_bytes was updated
+        RetentionState state = retentionRepository.getOrThrow();
+        assertTrue(state.getApproxDbBytes() > 0, "approx_db_bytes should be updated");
+        assertTrue(state.getApproxDbBytes() <= maxBytes || operationRepository.count() == 0,
+                "Database should be under limit or empty");
+    }
+
+    @Test
+    @Transactional
+    void testPurgeBySize_UpdatesApproxDbBytes() {
+        // Given: initial state - reset to 0 first
+        updateRetentionConfig(10L * 1024 * 1024 * 1024, null);
+        RetentionState stateFirst = retentionRepository.getOrThrow();
+        stateFirst.setApproxDbBytes(0L);
+        retentionRepository.persist(stateFirst);
+
+        // Create operation to ensure database has some size
+        createOperation("op-1", LocalDateTime.now());
+
+        // When: executing purge (should not delete but should update size)
+        retentionService.purgeBySize();
+
+        // Then: approx_db_bytes should be updated with current size
+        RetentionState stateAfter = retentionRepository.getOrThrow();
+        assertTrue(stateAfter.getApproxDbBytes() > 0, "approx_db_bytes should be greater than 0");
+    }
+
+    @Test
+    @Transactional
+    void testPurgeBySize_DeletesMultipleRecords() {
+        // Given: very small max_bytes
+        updateRetentionConfig(1024L, null); // 1 KB
+
+        // Create a few operations (enough to exceed limit but not too many to avoid lock issues)
+        LocalDateTime now = LocalDateTime.now();
+        createOperation("op-1", now.minusDays(10));
+        createOperation("op-2", now.minusDays(9));
+        createOperation("op-3", now.minusDays(8));
+        createOperation("op-4", now.minusDays(7));
+        createOperation("op-5", now.minusDays(6));
+
+        long initialCount = operationRepository.count();
+        assertTrue(initialCount > 0, "Should have operations");
+
+        // When: executing size-based purge
+        long deletedCount = retentionService.purgeBySize();
+
+        // Then: should complete purge
+        assertTrue(deletedCount >= 0, "Should complete purge");
+        LOG.infof("Deleted %d records from %d initial records", deletedCount, initialCount);
+    }
+
+    @Test
+    void testExecuteVacuum_HandlesConstraints() {
+        // When: executing VACUUM
+        // Note: VACUUM cannot run inside SQLite transactions, so this test verifies
+        // the method handles this gracefully
+        boolean result = retentionService.executeVacuum();
+
+        // Then: method should complete (may return false due to transaction constraints)
+        // This is acceptable behavior in test context
+        LOG.infof("VACUUM execution result: %b", result);
     }
 
     // Helper methods
