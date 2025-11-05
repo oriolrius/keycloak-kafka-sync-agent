@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2025-11-05 06:17'
-updated_date: '2025-11-05 06:18'
+updated_date: '2025-11-05 06:24'
 labels:
   - sprint-3
   - retention
@@ -22,11 +22,11 @@ Implement time-based retention that deletes sync_operation records older than th
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Service reads max_age_days from retention_state table
-- [ ] #2 Purge logic deletes records where occurred_at < now() - max_age_days
-- [ ] #3 Purge operation is transactional and updates retention_state.updated_at
-- [ ] #4 Unit tests verify correct TTL calculation and deletion
-- [ ] #5 Purge handles edge cases (no records, all records expired)
+- [x] #1 Service reads max_age_days from retention_state table
+- [x] #2 Purge logic deletes records where occurred_at < now() - max_age_days
+- [x] #3 Purge operation is transactional and updates retention_state.updated_at
+- [x] #4 Unit tests verify correct TTL calculation and deletion
+- [x] #5 Purge handles edge cases (no records, all records expired)
 <!-- AC:END -->
 
 ## Implementation Plan
