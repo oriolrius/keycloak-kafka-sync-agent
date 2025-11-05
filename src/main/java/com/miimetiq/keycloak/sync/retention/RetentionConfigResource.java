@@ -6,6 +6,12 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.logging.Logger;
 
 import java.time.LocalDateTime;
@@ -20,6 +26,7 @@ import java.time.LocalDateTime;
 @Path("/api/config/retention")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@Tag(name = "Configuration", description = "Configuration management API for retention policies")
 public class RetentionConfigResource {
 
     private static final Logger LOG = Logger.getLogger(RetentionConfigResource.class);
@@ -40,6 +47,22 @@ public class RetentionConfigResource {
      * @return retention configuration response
      */
     @GET
+    @Operation(
+        summary = "Get retention configuration",
+        description = "Returns current retention policy settings (max_bytes, max_age_days) and approximate database size"
+    )
+    @APIResponses({
+        @APIResponse(
+            responseCode = "200",
+            description = "Retention configuration retrieved successfully",
+            content = @Content(schema = @Schema(implementation = RetentionConfigResponse.class))
+        ),
+        @APIResponse(
+            responseCode = "500",
+            description = "Internal server error",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+        )
+    })
     public Response getRetentionConfig() {
         LOG.debug("GET /api/config/retention requested");
 
@@ -82,6 +105,27 @@ public class RetentionConfigResource {
      * @return updated retention configuration
      */
     @PUT
+    @Operation(
+        summary = "Update retention configuration",
+        description = "Updates retention policy settings. Pass null for a field to disable that limit. Validates max_bytes (max 10GB) and max_age_days (max 3650 days)"
+    )
+    @APIResponses({
+        @APIResponse(
+            responseCode = "200",
+            description = "Retention configuration updated successfully",
+            content = @Content(schema = @Schema(implementation = RetentionConfigResponse.class))
+        ),
+        @APIResponse(
+            responseCode = "400",
+            description = "Invalid request - validation failed",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+        ),
+        @APIResponse(
+            responseCode = "500",
+            description = "Internal server error",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+        )
+    })
     public Response updateRetentionConfig(RetentionConfigUpdateRequest request) {
         LOG.infof("PUT /api/config/retention requested: max_bytes=%s, max_age_days=%s",
                 request.maxBytes, request.maxAgeDays);

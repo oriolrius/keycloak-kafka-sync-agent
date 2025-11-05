@@ -1,0 +1,17 @@
+# Playwright Test Results
+test-results/
+playwright-report/
+
+# Generated Screenshots
+screenshots/*.png
+
+# Playwright Traces
+trace.zip
+*.trace
+
+# Playwright State
+.auth/
+
+# Keep directory structure
+!screenshots/.gitkeep
+!test-results/.gitkeep
