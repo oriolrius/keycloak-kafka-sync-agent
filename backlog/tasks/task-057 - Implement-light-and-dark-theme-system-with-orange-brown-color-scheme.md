@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@assistant'
 created_date: '2025-11-05 21:06'
-updated_date: '2025-11-05 21:08'
+updated_date: '2025-11-05 21:16'
 labels:
   - frontend
   - ui
@@ -48,9 +48,10 @@ Add support for light and dark themes with a toggle. Dark theme should use orang
 Implemented complete light/dark theme system with the following components:
 
 **Color Scheme (index.css)**
-- Dark theme uses orange colors (#f97316, #ff8c42) for text and UI accents
-- Dark brown backgrounds (#3e2723, #4a332e) for cards and components
-- Smooth color transitions throughout the UI
+- Dark theme uses very dark backgrounds (almost black with brown tint #1a1412)
+- Light gray text (#ebebeb) for main content
+- Orange (#f97316) used sparingly for primary buttons and accents only
+- Much darker overall appearance per user requirements
 
 **ThemeContext (contexts/ThemeContext.tsx)**
 - Created React context with theme state management
@@ -68,5 +69,5 @@ Implemented complete light/dark theme system with the following components:
 - Theme toggle visible in navigation bar next to logout button
 - Works seamlessly across all pages (Dashboard, Operations, Batches)
 
-The theme persists across page reloads and respects the user's system preference on first visit.
+The theme persists across page reloads and respects the user's system preference on first visit. Dark theme is very dark with orange used only as accent color for interactive elements.
 <!-- SECTION:NOTES:END -->
