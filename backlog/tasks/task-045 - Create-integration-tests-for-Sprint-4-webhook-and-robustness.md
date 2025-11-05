@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2025-11-05 10:16'
-updated_date: '2025-11-05 16:43'
+updated_date: '2025-11-05 16:44'
 labels:
   - sprint-4
   - testing
@@ -30,3 +30,43 @@ Implement comprehensive integration tests covering the webhook endpoint, signatu
 - [ ] #6 Test validates metrics are correctly updated
 - [ ] #7 All integration tests pass in CI environment
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+## Analysis of Existing Coverage
+
+Reviewed existing integration tests and identified coverage gaps:
+
+**Already Covered:**
+- AC #1, #2: WebhookSignatureIntegrationTest.java validates signed events ✓
+- AC #3: EventQueueIntegrationTest.java validates async event processing ✓
+- AC #6: WebhookMetricsIntegrationTest.java validates metrics ✓
+- AC #5: CircuitBreakerIntegrationTest.java exists but only tests health checks
+
+**Missing Coverage:**
+- AC #4: No integration test for retry logic with transient failures
+- AC #5: Need webhook-specific circuit breaker tests (not just health checks)
+
+## Implementation Steps
+
+1. **Create WebhookRetryIntegrationTest.java**
+   - Test retry behavior for Kafka publishing failures
+   - Test exponential backoff timing
+   - Test max retry attempts
+   - Test event persistence across retries
+   - Use mocked Kafka failures to simulate transient issues
+
+2. **Create WebhookCircuitBreakerIntegrationTest.java**
+   - Test circuit breaker opens after repeated webhook processing failures
+   - Test circuit breaker prevents webhook processing when open
+   - Test circuit breaker half-open state recovery
+   - Test metrics update when circuit breaker activates
+
+3. **Run full test suite**
+   - Execute all integration tests locally
+   - Verify tests work with Testcontainers
+   - Check CI configuration for integration test execution
+
+4. **Mark acceptance criteria complete and document**
+<!-- SECTION:PLAN:END -->
