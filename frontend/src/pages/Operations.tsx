@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useOperations } from '../hooks/useOperations'
-import { OperationType, OperationResult } from '../types/api'
+import { type OperationType, type OperationResult, OPERATION_TYPES, OPERATION_RESULTS } from '../types/api'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
@@ -292,7 +292,7 @@ export default function Operations() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All types</SelectItem>
-                  {Object.values(OperationType).map((type) => (
+                  {OPERATION_TYPES.map((type) => (
                     <SelectItem key={type} value={type}>
                       {type}
                     </SelectItem>
@@ -314,7 +314,7 @@ export default function Operations() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All results</SelectItem>
-                  {Object.values(OperationResult).map((res) => (
+                  {OPERATION_RESULTS.map((res) => (
                     <SelectItem key={res} value={res}>
                       {res}
                     </SelectItem>

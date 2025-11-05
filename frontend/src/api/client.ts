@@ -15,6 +15,21 @@ import type {
 // Base API URL - will be proxied by Vite dev server
 const API_BASE_URL = '/api'
 
+// Authentication helper
+function getAuthHeader(): string | null {
+  const credentials = sessionStorage.getItem('dashboard_auth')
+  if (!credentials) {
+    return null
+  }
+  return `Basic ${credentials}`
+}
+
+// 401 handler - exported for use by components
+export function handleUnauthorized() {
+  sessionStorage.removeItem('dashboard_auth')
+  window.location.href = '/login'
+}
+
 // Helper function to build query string
 function buildQueryString(params: Record<string, any>): string {
   const searchParams = new URLSearchParams()
@@ -29,9 +44,28 @@ function buildQueryString(params: Record<string, any>): string {
   return queryString ? `?${queryString}` : ''
 }
 
-// Generic fetch wrapper with error handling
-async function fetchJSON<T>(url: string): Promise<T> {
-  const response = await fetch(url)
+// Generic fetch wrapper with error handling and authentication
+async function fetchJSON<T>(url: string, options: RequestInit = {}): Promise<T> {
+  // Add authentication header if available
+  const authHeader = getAuthHeader()
+  const headers: Record<string, string> = {
+    ...(options.headers as Record<string, string> || {}),
+  }
+
+  if (authHeader) {
+    headers['Authorization'] = authHeader
+  }
+
+  const response = await fetch(url, {
+    ...options,
+    headers,
+  })
+
+  // Handle unauthorized responses
+  if (response.status === 401) {
+    handleUnauthorized()
+    throw new Error('Unauthorized')
+  }
 
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`)
@@ -66,13 +100,25 @@ export const apiClient = {
 
   // PUT /api/config/retention
   async updateRetentionConfig(config: RetentionConfig): Promise<RetentionConfig> {
+    const authHeader = getAuthHeader()
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    }
+
+    if (authHeader) {
+      headers['Authorization'] = authHeader
+    }
+
     const response = await fetch(`${API_BASE_URL}/config/retention`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify(config),
     })
+
+    if (response.status === 401) {
+      handleUnauthorized()
+      throw new Error('Unauthorized')
+    }
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`)
@@ -93,12 +139,24 @@ export const apiClient = {
 
   // POST /api/reconcile/trigger
   async triggerReconcile(): Promise<ReconcileTriggerResponse> {
+    const authHeader = getAuthHeader()
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    }
+
+    if (authHeader) {
+      headers['Authorization'] = authHeader
+    }
+
     const response = await fetch(`${API_BASE_URL}/reconcile/trigger`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
     })
+
+    if (response.status === 401) {
+      handleUnauthorized()
+      throw new Error('Unauthorized')
+    }
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))

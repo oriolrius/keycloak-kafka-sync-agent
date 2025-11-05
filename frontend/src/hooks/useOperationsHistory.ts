@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '../api/client'
-import type { OperationsPageResponse, OperationResult } from '../types/api'
 
 interface HistoricalDataPoint {
   timestamp: string

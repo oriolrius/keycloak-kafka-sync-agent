@@ -84,18 +84,11 @@ export interface RetentionConfig {
   updatedAt: string;               // Last update timestamp (ISO 8601 datetime)
 }
 
-export enum OperationType {
-  SCRAM_UPSERT = 'SCRAM_UPSERT',
-  SCRAM_DELETE = 'SCRAM_DELETE',
-  ACL_CREATE = 'ACL_CREATE',
-  ACL_DELETE = 'ACL_DELETE',
-}
+export type OperationType = 'SCRAM_UPSERT' | 'SCRAM_DELETE' | 'ACL_CREATE' | 'ACL_DELETE'
+export const OPERATION_TYPES: OperationType[] = ['SCRAM_UPSERT', 'SCRAM_DELETE', 'ACL_CREATE', 'ACL_DELETE']
 
-export enum OperationResult {
-  SUCCESS = 'SUCCESS',
-  ERROR = 'ERROR',
-  SKIPPED = 'SKIPPED',
-}
+export type OperationResult = 'SUCCESS' | 'ERROR' | 'SKIPPED'
+export const OPERATION_RESULTS: OperationResult[] = ['SUCCESS', 'ERROR', 'SKIPPED']
 
 // Query parameters for operations endpoint
 export interface OperationsQueryParams {

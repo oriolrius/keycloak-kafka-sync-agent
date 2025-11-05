@@ -1,11 +1,20 @@
-import { Link, useLocation } from 'react-router-dom'
-import { Home, Clock, Layers } from 'lucide-react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Home, Clock, Layers, LogOut } from 'lucide-react'
+import { Button } from './ui/button'
+import { useAuth } from '../contexts/AuthContext'
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation()
+  const navigate = useNavigate()
+  const { logout, isAuthenticated } = useAuth()
 
   const isActive = (path: string) => {
     return location.pathname === path
+  }
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login')
   }
 
   return (
@@ -53,6 +62,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </Link>
               </div>
             </div>
+            {isAuthenticated && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLogout}
+                className="flex items-center gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </Button>
+            )}
           </div>
         </div>
       </nav>
