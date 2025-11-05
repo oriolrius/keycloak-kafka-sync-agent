@@ -1,9 +1,11 @@
 ---
 id: task-056
 title: Fix DashboardAuthConfig registration in backend integration tests
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@assistant'
 created_date: '2025-11-05 20:49'
+updated_date: '2025-11-05 20:53'
 labels:
   - bug
   - testing
