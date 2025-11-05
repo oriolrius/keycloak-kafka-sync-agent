@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@assistant'
 created_date: '2025-11-05 16:55'
-updated_date: '2025-11-05 17:57'
+updated_date: '2025-11-05 18:17'
 labels:
   - frontend
   - operations
@@ -44,7 +44,9 @@ Build the operation timeline page showing detailed history of all sync operation
 7. Create expandable error details for failed operations
 8. Configure TanStack Query with polling for real-time updates
 9. Add routing and navigation
-10. Test all features
+10. Create comprehensive Playwright UI tests for both Dashboard and Operations pages
+11. Fix test wait strategies to handle continuous API polling
+12. Test all features
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
