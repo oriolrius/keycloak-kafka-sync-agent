@@ -20,15 +20,18 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.apache.kafka.clients.admin.AlterUserScramCredentialsResult;
+import org.apache.kafka.clients.admin.ScramCredentialInfo;
 import org.apache.kafka.common.KafkaFuture;
 import org.jboss.logging.Logger;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -81,6 +84,9 @@ public class ReconciliationService {
     @Inject
     SyncMetrics syncMetrics;
 
+    @Inject
+    SyncDiffEngine syncDiffEngine;
+
     /**
      * Performs a complete reconciliation cycle.
      * <p>
@@ -105,68 +111,160 @@ public class ReconciliationService {
         try {
             // Step 2: Fetch all users from Keycloak
             LOG.info("Fetching users from Keycloak...");
-            List<KeycloakUserInfo> users = keycloakUserFetcher.fetchAllUsers();
-            LOG.infof("Fetched %d users from Keycloak", users.size());
+            List<KeycloakUserInfo> keycloakUsers = keycloakUserFetcher.fetchAllUsers();
+            LOG.infof("Fetched %d users from Keycloak", keycloakUsers.size());
 
             // Record Keycloak fetch metric
             syncMetrics.incrementKeycloakFetch(realm, source);
 
-            // Step 3: Create sync_batch record
-            SyncBatch batch = createSyncBatch(correlationId, startedAt, source, users.size());
+            // Step 3: Fetch all SCRAM principals from Kafka
+            LOG.info("Fetching SCRAM principals from Kafka...");
+            Map<String, List<ScramCredentialInfo>> kafkaCredentials = kafkaScramManager.describeUserScramCredentials();
+            Set<String> kafkaPrincipals = kafkaCredentials.keySet();
+            LOG.infof("Fetched %d principals from Kafka", kafkaPrincipals.size());
+
+            // Step 4: Compute diff using SyncDiffEngine
+            LOG.info("Computing synchronization diff...");
+            SyncPlan syncPlan = syncDiffEngine.computeDiff(keycloakUsers, kafkaPrincipals);
+            LOG.infof("Sync plan: %d upsert(s), %d delete(s)", syncPlan.getUpsertCount(), syncPlan.getDeleteCount());
+
+            // If plan is empty, log and return early
+            if (syncPlan.isEmpty()) {
+                LOG.info("No synchronization operations needed - systems are in sync");
+                LocalDateTime finishedAt = LocalDateTime.now();
+
+                // Create empty batch record for audit trail
+                SyncBatch batch = createSyncBatch(correlationId, startedAt, source, 0);
+                batch.setFinishedAt(finishedAt);
+                entityManager.persist(batch);
+
+                syncMetrics.recordReconciliationDuration(reconciliationTimer, realm, clusterId, source);
+                syncMetrics.updateLastSuccessEpoch();
+
+                return new ReconciliationResult(correlationId, startedAt, finishedAt, source, 0, 0, 0);
+            }
+
+            // Step 5: Create sync_batch record
+            int totalOperations = syncPlan.getTotalOperations();
+            SyncBatch batch = createSyncBatch(correlationId, startedAt, source, totalOperations);
             entityManager.persist(batch);
             entityManager.flush(); // Ensure batch ID is available
 
-            // Step 4: Generate credentials and prepare upsert map
-            LOG.info("Generating SCRAM credentials for users...");
-            Map<String, CredentialSpec> credentialSpecs = new HashMap<>();
-
-            for (KeycloakUserInfo user : users) {
-                String password = generateRandomPassword();
-                credentialSpecs.put(user.getUsername(), new CredentialSpec(DEFAULT_MECHANISM, password, DEFAULT_ITERATIONS));
-            }
-
-            LOG.infof("Generated %d SCRAM credentials", credentialSpecs.size());
-
-            // Step 5: Execute batch upsert to Kafka
-            LOG.info("Upserting SCRAM credentials to Kafka...");
-            AlterUserScramCredentialsResult result = kafkaScramManager.upsertUserScramCredentials(credentialSpecs);
-
-            // Step 6: Wait for results and persist operations
-            LOG.info("Waiting for Kafka operations to complete...");
-            Map<String, Throwable> errors = kafkaScramManager.waitForAlterations(result);
-
-            // Step 7: Persist each operation result
             int successCount = 0;
             int errorCount = 0;
 
-            for (KeycloakUserInfo user : users) {
-                String principal = user.getUsername();
-                Throwable error = errors.get(principal);
+            // Step 6: Process upserts
+            if (syncPlan.getUpsertCount() > 0) {
+                LOG.infof("Processing %d upsert operation(s)...", syncPlan.getUpsertCount());
 
-                SyncOperation operation = createSyncOperation(
-                        correlationId,
-                        principal,
-                        OpType.SCRAM_UPSERT,
-                        DEFAULT_MECHANISM,
-                        error == null ? OperationResult.SUCCESS : OperationResult.ERROR,
-                        error
-                );
-
-                entityManager.persist(operation);
-
-                if (error == null) {
-                    successCount++;
-                    batch.incrementSuccess();
-                    // Record successful SCRAM upsert metric
-                    syncMetrics.incrementKafkaScramUpsert(clusterId, DEFAULT_MECHANISM.name(), "SUCCESS");
-                } else {
-                    errorCount++;
-                    batch.incrementError();
-                    // Record failed SCRAM upsert metric
-                    syncMetrics.incrementKafkaScramUpsert(clusterId, DEFAULT_MECHANISM.name(), "ERROR");
-                    LOG.warnf("Failed to upsert SCRAM credential for principal '%s': %s",
-                            principal, error.getMessage());
+                // Generate credentials for upserts
+                Map<String, CredentialSpec> credentialSpecs = new HashMap<>();
+                for (KeycloakUserInfo user : syncPlan.getUpserts()) {
+                    String password = generateRandomPassword();
+                    credentialSpecs.put(user.getUsername(), new CredentialSpec(DEFAULT_MECHANISM, password, DEFAULT_ITERATIONS));
                 }
+
+                // Execute batch upsert to Kafka
+                AlterUserScramCredentialsResult upsertResult = kafkaScramManager.upsertUserScramCredentials(credentialSpecs);
+                Map<String, Throwable> upsertErrors = kafkaScramManager.waitForAlterations(upsertResult);
+
+                // Persist each upsert operation result
+                for (KeycloakUserInfo user : syncPlan.getUpserts()) {
+                    String principal = user.getUsername();
+                    Throwable error = upsertErrors.get(principal);
+
+                    SyncOperation operation = createSyncOperation(
+                            correlationId,
+                            principal,
+                            OpType.SCRAM_UPSERT,
+                            DEFAULT_MECHANISM,
+                            error == null ? OperationResult.SUCCESS : OperationResult.ERROR,
+                            error
+                    );
+
+                    entityManager.persist(operation);
+
+                    if (error == null) {
+                        successCount++;
+                        batch.incrementSuccess();
+                        syncMetrics.incrementKafkaScramUpsert(clusterId, DEFAULT_MECHANISM.name(), "SUCCESS");
+                    } else {
+                        errorCount++;
+                        batch.incrementError();
+                        syncMetrics.incrementKafkaScramUpsert(clusterId, DEFAULT_MECHANISM.name(), "ERROR");
+                        LOG.warnf("Failed to upsert SCRAM credential for principal '%s': %s",
+                                principal, error.getMessage());
+                    }
+                }
+
+                LOG.infof("Completed upsert operations: %d success, %d errors",
+                        successCount, upsertErrors.size());
+            }
+
+            // Step 7: Process deletes
+            if (syncPlan.getDeleteCount() > 0) {
+                LOG.infof("Processing %d delete operation(s)...", syncPlan.getDeleteCount());
+
+                // Build deletion map (principal -> list of mechanisms to delete)
+                Map<String, List<ScramMechanism>> deletionMap = new HashMap<>();
+                for (String principal : syncPlan.getDeletes()) {
+                    // Delete all SCRAM mechanisms for this principal
+                    List<ScramCredentialInfo> credentials = kafkaCredentials.get(principal);
+                    List<ScramMechanism> mechanismsToDelete = new ArrayList<>();
+
+                    if (credentials != null) {
+                        for (ScramCredentialInfo credInfo : credentials) {
+                            // Convert Kafka mechanism to our domain mechanism
+                            ScramMechanism mechanism = convertFromKafkaScramMechanism(credInfo.mechanism());
+                            mechanismsToDelete.add(mechanism);
+                        }
+                    }
+
+                    // If no credentials found, still attempt delete with default mechanism
+                    if (mechanismsToDelete.isEmpty()) {
+                        mechanismsToDelete.add(DEFAULT_MECHANISM);
+                    }
+
+                    deletionMap.put(principal, mechanismsToDelete);
+                }
+
+                // Execute batch delete to Kafka
+                AlterUserScramCredentialsResult deleteResult = kafkaScramManager.deleteUserScramCredentials(deletionMap);
+                Map<String, Throwable> deleteErrors = kafkaScramManager.waitForAlterations(deleteResult);
+
+                // Persist each delete operation result
+                for (String principal : syncPlan.getDeletes()) {
+                    Throwable error = deleteErrors.get(principal);
+
+                    // Use the first mechanism we attempted to delete for the operation record
+                    ScramMechanism mechanism = deletionMap.get(principal).get(0);
+
+                    SyncOperation operation = createSyncOperation(
+                            correlationId,
+                            principal,
+                            OpType.SCRAM_DELETE,
+                            mechanism,
+                            error == null ? OperationResult.SUCCESS : OperationResult.ERROR,
+                            error
+                    );
+
+                    entityManager.persist(operation);
+
+                    if (error == null) {
+                        successCount++;
+                        batch.incrementSuccess();
+                        syncMetrics.incrementKafkaScramDelete(clusterId, "SUCCESS");
+                    } else {
+                        errorCount++;
+                        batch.incrementError();
+                        syncMetrics.incrementKafkaScramDelete(clusterId, "ERROR");
+                        LOG.warnf("Failed to delete SCRAM credential for principal '%s': %s",
+                                principal, error.getMessage());
+                    }
+                }
+
+                LOG.infof("Completed delete operations: %d success, %d errors",
+                        syncPlan.getDeleteCount() - deleteErrors.size(), deleteErrors.size());
             }
 
             // Step 8: Finalize batch
@@ -174,8 +272,8 @@ public class ReconciliationService {
             batch.setFinishedAt(finishedAt);
             entityManager.merge(batch);
 
-            LOG.infof("Reconciliation cycle completed: correlation_id=%s, success=%d, errors=%d, duration=%dms",
-                    correlationId, successCount, errorCount,
+            LOG.infof("Reconciliation cycle completed: correlation_id=%s, total=%d, success=%d, errors=%d, duration=%dms",
+                    correlationId, totalOperations, successCount, errorCount,
                     java.time.Duration.between(startedAt, finishedAt).toMillis());
 
             // Step 9: Record metrics
@@ -189,7 +287,7 @@ public class ReconciliationService {
                     startedAt,
                     finishedAt,
                     source,
-                    users.size(),
+                    totalOperations,
                     successCount,
                     errorCount
             );
@@ -270,6 +368,20 @@ public class ReconciliationService {
             password.append(PASSWORD_CHARS.charAt(RANDOM.nextInt(PASSWORD_CHARS.length())));
         }
         return password.toString();
+    }
+
+    /**
+     * Converts Kafka's ScramMechanism enum to our domain ScramMechanism enum.
+     *
+     * @param kafkaMechanism Kafka's ScramMechanism
+     * @return our domain ScramMechanism
+     */
+    private ScramMechanism convertFromKafkaScramMechanism(org.apache.kafka.clients.admin.ScramMechanism kafkaMechanism) {
+        return switch (kafkaMechanism) {
+            case SCRAM_SHA_256 -> ScramMechanism.SCRAM_SHA_256;
+            case SCRAM_SHA_512 -> ScramMechanism.SCRAM_SHA_512;
+            default -> throw new IllegalArgumentException("Unsupported SCRAM mechanism: " + kafkaMechanism);
+        };
     }
 
     /**
