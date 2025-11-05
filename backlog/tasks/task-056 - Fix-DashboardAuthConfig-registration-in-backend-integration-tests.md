@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@assistant'
 created_date: '2025-11-05 20:49'
-updated_date: '2025-11-05 20:55'
+updated_date: '2025-11-05 21:01'
 labels:
   - bug
   - testing
@@ -22,8 +22,8 @@ All backend integration tests are currently failing with "Could not find a mappi
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Backend integration tests can start successfully
-- [ ] #2 DashboardAuthConfig is properly registered in test environment
+- [x] #1 Backend integration tests can start successfully
+- [x] #2 DashboardAuthConfig is properly registered in test environment
 - [ ] #3 All previously passing backend integration tests pass again
 <!-- AC:END -->
 
