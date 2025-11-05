@@ -5,6 +5,7 @@ status: In Progress
 assignee:
   - '@assistant'
 created_date: '2025-11-05 21:06'
+updated_date: '2025-11-05 21:06'
 labels:
   - frontend
   - ui
@@ -28,3 +29,15 @@ Add support for light and dark themes with a toggle. Dark theme should use orang
 - [ ] #5 Theme changes apply smoothly across all pages and components
 - [ ] #6 System preference (prefers-color-scheme) is respected on first load
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Update index.css with orange/dark brown color scheme for dark theme
+2. Create a ThemeContext and ThemeProvider to manage theme state
+3. Add localStorage persistence and system preference detection
+4. Create a ThemeToggle component (sun/moon icon button)
+5. Integrate ThemeProvider in App.tsx
+6. Add ThemeToggle to Layout component navigation bar
+7. Test theme switching across all pages
+<!-- SECTION:PLAN:END -->
