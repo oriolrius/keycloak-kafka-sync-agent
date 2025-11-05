@@ -1,6 +1,8 @@
 package com.miimetiq.keycloak.sync.webhook;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.miimetiq.keycloak.sync.metrics.SyncMetrics;
+import io.micrometer.core.instrument.Timer;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -38,6 +40,9 @@ public class KeycloakWebhookResource {
     @Inject
     EventQueueService eventQueueService;
 
+    @Inject
+    SyncMetrics metrics;
+
     /**
      * Receive a Keycloak admin event via webhook.
      * <p>
@@ -61,10 +66,21 @@ public class KeycloakWebhookResource {
         // Generate correlation ID for tracking
         String correlationId = UUID.randomUUID().toString();
 
+        // Start metrics timer
+        Timer.Sample timer = metrics.startWebhookProcessingTimer();
+
+        // Default values for metrics (will be updated as we parse the event)
+        String realm = "unknown";
+        String eventType = "unknown";
+        String result = "ERROR";
+
         try {
             // Validate payload exists
             if (payload == null || payload.isBlank()) {
                 LOG.warnf("[%s] Received null or empty event payload", correlationId);
+                result = "INVALID_PAYLOAD";
+                metrics.incrementWebhookReceived(realm, eventType, result);
+                metrics.recordWebhookProcessingDuration(timer, realm, eventType);
                 return Response
                         .status(Response.Status.BAD_REQUEST)
                         .entity(new ErrorResponse("Event payload is required"))
@@ -77,6 +93,9 @@ public class KeycloakWebhookResource {
 
             if (!validationResult.isValid()) {
                 LOG.warnf("[%s] Signature validation failed: %s", correlationId, validationResult.getErrorMessage());
+                result = "INVALID_SIGNATURE";
+                metrics.incrementWebhookReceived(realm, eventType, result);
+                metrics.recordWebhookProcessingDuration(timer, realm, eventType);
                 return Response
                         .status(Response.Status.UNAUTHORIZED)
                         .entity(new ErrorResponse("Signature validation failed: " + validationResult.getErrorMessage()))
@@ -89,6 +108,9 @@ public class KeycloakWebhookResource {
                 event = objectMapper.readValue(payload, KeycloakAdminEvent.class);
             } catch (Exception e) {
                 LOG.warnf(e, "[%s] Failed to parse event payload: %s", correlationId, e.getMessage());
+                result = "INVALID_PAYLOAD";
+                metrics.incrementWebhookReceived(realm, eventType, result);
+                metrics.recordWebhookProcessingDuration(timer, realm, eventType);
                 return Response
                         .status(Response.Status.BAD_REQUEST)
                         .entity(new ErrorResponse("Invalid JSON payload: " + e.getMessage()))
@@ -98,6 +120,9 @@ public class KeycloakWebhookResource {
             // Validate event fields
             if (event == null) {
                 LOG.warnf("[%s] Deserialized event is null", correlationId);
+                result = "INVALID_PAYLOAD";
+                metrics.incrementWebhookReceived(realm, eventType, result);
+                metrics.recordWebhookProcessingDuration(timer, realm, eventType);
                 return Response
                         .status(Response.Status.BAD_REQUEST)
                         .entity(new ErrorResponse("Event payload is required"))
@@ -107,11 +132,18 @@ public class KeycloakWebhookResource {
             // Basic validation of required fields
             if (event.getResourceType() == null || event.getOperationType() == null) {
                 LOG.warnf("[%s] Received event with missing required fields: %s", correlationId, event);
+                result = "INVALID_PAYLOAD";
+                metrics.incrementWebhookReceived(realm, eventType, result);
+                metrics.recordWebhookProcessingDuration(timer, realm, eventType);
                 return Response
                         .status(Response.Status.BAD_REQUEST)
                         .entity(new ErrorResponse("Event must contain resourceType and operationType"))
                         .build();
             }
+
+            // Extract realm and event type for metrics
+            realm = event.getRealmId() != null ? event.getRealmId() : "unknown";
+            eventType = event.getResourceType() != null ? event.getResourceType() : "unknown";
 
             // Log received event with correlation ID
             LOG.infof("[%s] Received Keycloak admin event: resourceType=%s, operationType=%s, resourcePath=%s",
@@ -123,6 +155,9 @@ public class KeycloakWebhookResource {
 
             if (!enqueued) {
                 LOG.errorf("[%s] Failed to enqueue event, queue is full", correlationId);
+                result = "QUEUE_FULL";
+                metrics.incrementWebhookReceived(realm, eventType, result);
+                metrics.recordWebhookProcessingDuration(timer, realm, eventType);
                 return Response
                         .status(Response.Status.SERVICE_UNAVAILABLE)
                         .entity(new ErrorResponse("Event queue is full, please retry later"))
@@ -130,6 +165,11 @@ public class KeycloakWebhookResource {
             }
 
             LOG.debugf("[%s] Event enqueued for processing: %s", correlationId, event);
+
+            // Record success
+            result = "SUCCESS";
+            metrics.incrementWebhookReceived(realm, eventType, result);
+            metrics.recordWebhookProcessingDuration(timer, realm, eventType);
 
             // Return success response
             return Response
@@ -143,6 +183,9 @@ public class KeycloakWebhookResource {
 
         } catch (Exception e) {
             LOG.errorf(e, "[%s] Failed to process webhook event: %s", correlationId, e.getMessage());
+            result = "ERROR";
+            metrics.incrementWebhookReceived(realm, eventType, result);
+            metrics.recordWebhookProcessingDuration(timer, realm, eventType);
             return Response
                     .status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(new ErrorResponse("Failed to process event: " + e.getMessage()))

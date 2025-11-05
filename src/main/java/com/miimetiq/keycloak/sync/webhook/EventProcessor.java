@@ -175,7 +175,7 @@ public class EventProcessor {
 
                 // Record successful retry if this was a retry attempt
                 if (retryCount > 0) {
-                    metrics.incrementRetryAttempts("SUCCESS");
+                    metrics.incrementRetryAttempts("SUCCESS", retryCount + 1);
                 }
 
             } catch (Exception e) {
@@ -211,10 +211,10 @@ public class EventProcessor {
                         () -> {
                             try {
                                 queueService.enqueue(webhookEvent);
-                                metrics.incrementRetryAttempts("SCHEDULED");
+                                metrics.incrementRetryAttempts("SCHEDULED", newRetryCount + 1);
                             } catch (Exception e) {
                                 LOG.errorf(e, "[%s] Failed to re-enqueue event for retry", correlationId);
-                                metrics.incrementRetryAttempts("ERROR");
+                                metrics.incrementRetryAttempts("ENQUEUE_ERROR", newRetryCount + 1);
                             }
                         },
                         delayMs,
@@ -224,7 +224,7 @@ public class EventProcessor {
                 // Max retries exceeded - log permanent failure
                 LOG.errorf(error, "[%s] Event processing failed permanently after %d attempts: %s",
                         correlationId, retryCount + 1, error.getMessage());
-                metrics.incrementRetryAttempts("MAX_RETRIES_EXCEEDED");
+                metrics.incrementRetryAttempts("MAX_RETRIES_EXCEEDED", retryCount + 1);
 
                 // TODO: Store failed event for later analysis/manual intervention
             }

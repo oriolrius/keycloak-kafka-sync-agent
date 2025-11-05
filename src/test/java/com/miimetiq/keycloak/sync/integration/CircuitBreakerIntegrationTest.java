@@ -8,6 +8,7 @@ import io.smallrye.faulttolerance.api.CircuitBreakerMaintenance;
 import io.smallrye.faulttolerance.api.CircuitBreakerState;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.health.HealthCheckResponse;
+import org.eclipse.microprofile.health.Readiness;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -27,9 +28,11 @@ class CircuitBreakerIntegrationTest {
     CircuitBreakerService circuitBreakerService;
 
     @Inject
+    @Readiness
     KeycloakHealthCheck keycloakHealthCheck;
 
     @Inject
+    @Readiness
     KafkaHealthCheck kafkaHealthCheck;
 
     @BeforeEach

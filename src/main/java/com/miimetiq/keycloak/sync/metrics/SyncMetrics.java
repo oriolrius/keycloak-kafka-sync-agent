@@ -195,17 +195,72 @@ public class SyncMetrics {
         this.databasePath = path;
     }
 
+    // ========== Webhook Event Metrics ==========
+
+    /**
+     * Increment counter for webhook events received.
+     *
+     * @param realm the Keycloak realm
+     * @param eventType the event type (USER, GROUP, etc.)
+     * @param result the processing result (SUCCESS, ERROR, IGNORED, INVALID_SIGNATURE, INVALID_PAYLOAD)
+     */
+    public void incrementWebhookReceived(String realm, String eventType, String result) {
+        Counter.builder("sync_webhook_received_total")
+                .description("Total number of webhook events received")
+                .tag("realm", realm)
+                .tag("event_type", eventType)
+                .tag("result", result)
+                .register(registry)
+                .increment();
+    }
+
+    /**
+     * Increment counter for webhook signature validation failures.
+     */
+    public void incrementSignatureFailure() {
+        Counter.builder("sync_webhook_signature_failures_total")
+                .description("Total number of webhook signature validation failures")
+                .register(registry)
+                .increment();
+    }
+
+    /**
+     * Start a timer for webhook processing operations.
+     *
+     * @return Timer.Sample to stop timing later
+     */
+    public Timer.Sample startWebhookProcessingTimer() {
+        return Timer.start(registry);
+    }
+
+    /**
+     * Record webhook processing duration.
+     *
+     * @param sample the timer sample from startWebhookProcessingTimer()
+     * @param realm the Keycloak realm
+     * @param eventType the event type
+     */
+    public void recordWebhookProcessingDuration(Timer.Sample sample, String realm, String eventType) {
+        sample.stop(Timer.builder("sync_webhook_processing_duration_seconds")
+                .description("Duration of webhook event processing")
+                .tag("realm", realm)
+                .tag("event_type", eventType)
+                .register(registry));
+    }
+
     // ========== Webhook Event Retry Metrics ==========
 
     /**
      * Increment counter for webhook event retry attempts.
      *
-     * @param result the retry result (SUCCESS, ERROR, MAX_RETRIES_EXCEEDED)
+     * @param reason the retry reason (PROCESSING_ERROR, MAPPING_ERROR, SYNC_ERROR)
+     * @param attempt the attempt number (1, 2, 3, etc.)
      */
-    public void incrementRetryAttempts(String result) {
+    public void incrementRetryAttempts(String reason, int attempt) {
         Counter.builder("sync_retry_total")
                 .description("Total number of webhook event retry attempts")
-                .tag("result", result)
+                .tag("reason", reason)
+                .tag("attempt", String.valueOf(attempt))
                 .register(registry)
                 .increment();
     }

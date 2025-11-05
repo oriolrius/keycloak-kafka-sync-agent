@@ -1,6 +1,7 @@
 package com.miimetiq.keycloak.sync.webhook;
 
 import com.miimetiq.keycloak.sync.keycloak.KeycloakConfig;
+import com.miimetiq.keycloak.sync.metrics.SyncMetrics;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
@@ -29,6 +30,9 @@ public class WebhookSignatureValidator {
     @Inject
     KeycloakConfig keycloakConfig;
 
+    @Inject
+    SyncMetrics metrics;
+
     /**
      * Validates the HMAC signature for a webhook payload.
      * <p>
@@ -50,12 +54,14 @@ public class WebhookSignatureValidator {
         // Check if signature is provided
         if (signature == null || signature.isBlank()) {
             LOG.warn("Missing webhook signature header");
+            metrics.incrementSignatureFailure();
             return ValidationResult.failure("Missing signature header");
         }
 
         // Check if payload is provided
         if (payload == null) {
             LOG.warn("Cannot validate signature for null payload");
+            metrics.incrementSignatureFailure();
             return ValidationResult.failure("Payload is required");
         }
 
@@ -73,11 +79,13 @@ public class WebhookSignatureValidator {
             } else {
                 LOG.warnf("Invalid webhook signature: expected=%s, received=%s",
                         maskSignature(expectedSignature), maskSignature(signature));
+                metrics.incrementSignatureFailure();
                 return ValidationResult.failure("Invalid signature");
             }
 
         } catch (Exception e) {
             LOG.errorf(e, "Failed to validate webhook signature: %s", e.getMessage());
+            metrics.incrementSignatureFailure();
             return ValidationResult.failure("Signature validation error: " + e.getMessage());
         }
     }
