@@ -61,3 +61,53 @@ Create a scheduled background job that executes retention purge logic periodical
    - Test error handling (exceptions don't break scheduler)
    - Test that purge is called after sync batch
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+**Implementation Summary:**
+
+Created RetentionScheduler.java at `/src/main/java/com/miimetiq/keycloak/sync/retention/RetentionScheduler.java` with:
+- Scheduled retention purge job that runs every `retention.purge-interval-seconds` (default: 300s / 5 minutes)
+- Post-sync purge trigger integrated into ReconciliationService
+
+**Key Features:**
+- Uses `@Scheduled` with dynamic configuration via `${retention.purge-interval-seconds}s`
+- Implements overlap prevention with AtomicBoolean
+- Uses SKIP concurrent execution policy
+- Calls both TTL-based and space-based purge logic
+- Runs VACUUM after deletions to reclaim disk space
+- Graceful error handling - exceptions logged but don't break scheduler
+
+**Integration with ReconciliationService:**
+- Added RetentionScheduler injection to ReconciliationService.java:90
+- Calls `triggerPostSyncPurge()` after batch completion (line 289)
+- Post-sync purge skips if scheduled purge is already running
+- Wrapped in try-catch to not fail reconciliation if purge fails
+
+**Purge Execution Logic:**
+- `executePurge()` method runs both purgeTtl() and purgeBySize()
+- Continues with next purge type even if one fails
+- Only runs VACUUM if records were deleted
+- Returns PurgeResult with deletion counts for logging
+
+**Tests Created:**
+RetentionSchedulerTest.java with 11 test cases covering:
+- Both purge methods are called successfully
+- VACUUM is skipped if no records deleted
+- TTL failure doesn't prevent size purge
+- Size failure doesn't prevent VACUUM
+- VACUUM failure doesn't fail entire purge
+- Scheduled purge handles exceptions gracefully
+- Post-sync purge executes and handles errors
+- Post-sync purge skips if scheduled purge running
+- isPurgeRunning() returns correct status
+- Flag is reset even if purge fails
+
+**Configuration:**
+- Uses existing retention.purge-interval-seconds from RetentionConfig
+- Environment variable: RETENTION_PURGE_INTERVAL_SECONDS
+- Default: 300 seconds (5 minutes)
+
+All tests pass successfully!
+<!-- SECTION:NOTES:END -->
