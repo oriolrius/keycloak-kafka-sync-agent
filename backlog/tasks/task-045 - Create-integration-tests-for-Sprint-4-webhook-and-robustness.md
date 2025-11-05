@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2025-11-05 10:16'
-updated_date: '2025-11-05 16:44'
+updated_date: '2025-11-05 16:50'
 labels:
   - sprint-4
   - testing
@@ -22,13 +22,13 @@ Implement comprehensive integration tests covering the webhook endpoint, signatu
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Test validates webhook endpoint accepts valid signed events
-- [ ] #2 Test confirms invalid signatures are rejected with 401
-- [ ] #3 Test verifies events are enqueued and processed asynchronously
-- [ ] #4 Test validates retry logic for transient failures
-- [ ] #5 Test confirms circuit breaker opens after repeated failures
-- [ ] #6 Test validates metrics are correctly updated
-- [ ] #7 All integration tests pass in CI environment
+- [x] #1 Test validates webhook endpoint accepts valid signed events
+- [x] #2 Test confirms invalid signatures are rejected with 401
+- [x] #3 Test verifies events are enqueued and processed asynchronously
+- [x] #4 Test validates retry logic for transient failures
+- [x] #5 Test confirms circuit breaker opens after repeated failures
+- [x] #6 Test validates metrics are correctly updated
+- [x] #7 All integration tests pass in CI environment
 <!-- AC:END -->
 
 ## Implementation Plan
