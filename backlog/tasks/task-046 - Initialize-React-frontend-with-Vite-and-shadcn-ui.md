@@ -1,9 +1,11 @@
 ---
 id: task-046
 title: Initialize React frontend with Vite and shadcn/ui
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2025-11-05 16:55'
+updated_date: '2025-11-05 17:01'
 labels:
   - frontend
   - ui
