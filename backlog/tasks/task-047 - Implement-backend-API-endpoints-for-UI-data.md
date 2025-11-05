@@ -1,9 +1,11 @@
 ---
 id: task-047
 title: Implement backend API endpoints for UI data
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2025-11-05 16:55'
+updated_date: '2025-11-05 17:17'
 labels:
   - backend
   - api
