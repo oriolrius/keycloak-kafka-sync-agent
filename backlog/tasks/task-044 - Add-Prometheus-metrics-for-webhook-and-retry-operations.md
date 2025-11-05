@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2025-11-05 10:16'
-updated_date: '2025-11-05 16:31'
+updated_date: '2025-11-05 16:40'
 labels:
   - sprint-4
   - metrics
@@ -22,13 +22,13 @@ Extend the Prometheus metrics endpoint to include counters and histograms for we
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Counter sync_webhook_received_total{realm,event_type,result} tracks incoming events
-- [ ] #2 Gauge sync_queue_backlog shows current queue depth
-- [ ] #3 Counter sync_retry_total{reason,attempt} tracks retry operations
-- [ ] #4 Histogram sync_webhook_processing_duration_seconds measures event processing time
-- [ ] #5 Counter sync_webhook_signature_failures_total tracks authentication failures
-- [ ] #6 All metrics exposed via GET /metrics in Prometheus format
-- [ ] #7 Integration test validates metric presence and accuracy
+- [x] #1 Counter sync_webhook_received_total{realm,event_type,result} tracks incoming events
+- [x] #2 Gauge sync_queue_backlog shows current queue depth
+- [x] #3 Counter sync_retry_total{reason,attempt} tracks retry operations
+- [x] #4 Histogram sync_webhook_processing_duration_seconds measures event processing time
+- [x] #5 Counter sync_webhook_signature_failures_total tracks authentication failures
+- [x] #6 All metrics exposed via GET /metrics in Prometheus format
+- [x] #7 Integration test validates metric presence and accuracy
 <!-- AC:END -->
 
 ## Implementation Plan
