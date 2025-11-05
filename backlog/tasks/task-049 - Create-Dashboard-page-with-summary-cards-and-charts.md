@@ -1,9 +1,11 @@
 ---
 id: task-049
 title: Create Dashboard page with summary cards and charts
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2025-11-05 16:55'
+updated_date: '2025-11-05 17:44'
 labels:
   - frontend
   - dashboard
