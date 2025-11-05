@@ -58,11 +58,15 @@ export interface OperationsPageResponse {
 
 export interface BatchResponse {
   id: number;
-  startTime: string; // ISO 8601 datetime
-  endTime?: string; // ISO 8601 datetime
-  opsProcessed: number;
-  completed: boolean;
+  correlationId: string;
+  startedAt: string; // ISO 8601 datetime
+  finishedAt?: string; // ISO 8601 datetime
+  source: string; // SCHEDULED, MANUAL, WEBHOOK
+  itemsTotal: number;
+  itemsSuccess: number;
+  itemsError: number;
   durationMs?: number;
+  complete: boolean;
 }
 
 export interface BatchesPageResponse {
@@ -107,4 +111,7 @@ export interface OperationsQueryParams {
 export interface BatchesQueryParams {
   page?: number;
   pageSize?: number;
+  startTime?: string; // ISO 8601 datetime
+  endTime?: string; // ISO 8601 datetime
+  source?: string; // SCHEDULED, MANUAL, WEBHOOK
 }

@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Home, Clock } from 'lucide-react'
+import { Home, Clock, Layers } from 'lucide-react'
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation()
@@ -39,6 +39,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 >
                   <Clock className="h-4 w-4" />
                   Operations
+                </Link>
+                <Link
+                  to="/batches"
+                  className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
+                    isActive('/batches')
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                  }`}
+                >
+                  <Layers className="h-4 w-4" />
+                  Batches
                 </Link>
               </div>
             </div>
