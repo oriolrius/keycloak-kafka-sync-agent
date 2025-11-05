@@ -1,9 +1,11 @@
 ---
 id: task-018
 title: Add Prometheus metrics for sync operations
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2025-11-04 18:33'
+updated_date: '2025-11-05 04:18'
 labels:
   - backend
   - observability
