@@ -2,10 +2,38 @@
 
 export interface SummaryResponse {
   opsPerHour: number;
-  errorRatePercent: number;
-  latencyP95Ms: number;
-  latencyP99Ms: number;
-  dbUsageMb: number;
+  errorRate: number;
+  latencyP95: number | null;
+  latencyP99: number | null;
+  dbUsageBytes: number;
+  timestamp: string; // ISO 8601 datetime
+}
+
+export interface HealthCheck {
+  name: string;
+  status: 'UP' | 'DOWN';
+  data?: Record<string, any>;
+}
+
+export interface HealthResponse {
+  status: 'UP' | 'DOWN';
+  checks: HealthCheck[];
+}
+
+export interface ReconcileStatusResponse {
+  running: boolean;
+}
+
+export interface ReconcileTriggerResponse {
+  message: string;
+  correlationId: string;
+  successfulOperations: number;
+  failedOperations: number;
+  durationMs: number;
+}
+
+export interface ReconcileErrorResponse {
+  error: string;
 }
 
 export interface OperationResponse {

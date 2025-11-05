@@ -13,8 +13,17 @@ export default defineConfig({
   server: {
     port: 57000,
     host: true,
+    allowedHosts: [
+      'wsl.ymbihq.local',
+      '.ymbihq.local',
+      'localhost',
+    ],
     proxy: {
       '/api': {
+        target: 'http://localhost:57010',
+        changeOrigin: true,
+      },
+      '/health': {
         target: 'http://localhost:57010',
         changeOrigin: true,
       },

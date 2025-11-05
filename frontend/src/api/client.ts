@@ -7,6 +7,9 @@ import type {
   BatchesPageResponse,
   BatchesQueryParams,
   RetentionConfig,
+  HealthResponse,
+  ReconcileStatusResponse,
+  ReconcileTriggerResponse,
 } from '../types/api'
 
 // Base API URL - will be proxied by Vite dev server
@@ -73,6 +76,33 @@ export const apiClient = {
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    return response.json()
+  },
+
+  // GET /health (MicroProfile Health endpoint)
+  async getHealth(): Promise<HealthResponse> {
+    return fetchJSON<HealthResponse>('/health')
+  },
+
+  // GET /api/reconcile/status
+  async getReconcileStatus(): Promise<ReconcileStatusResponse> {
+    return fetchJSON<ReconcileStatusResponse>(`${API_BASE_URL}/reconcile/status`)
+  },
+
+  // POST /api/reconcile/trigger
+  async triggerReconcile(): Promise<ReconcileTriggerResponse> {
+    const response = await fetch(`${API_BASE_URL}/reconcile/trigger`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+      throw new Error(errorData.error || `HTTP error! status: ${response.status}`)
     }
 
     return response.json()
