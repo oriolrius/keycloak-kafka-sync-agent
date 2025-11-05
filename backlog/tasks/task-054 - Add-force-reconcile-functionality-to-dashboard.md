@@ -1,9 +1,11 @@
 ---
 id: task-054
 title: Add force reconcile functionality to dashboard
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2025-11-05 16:55'
+updated_date: '2025-11-05 20:38'
 labels:
   - backend
   - frontend
