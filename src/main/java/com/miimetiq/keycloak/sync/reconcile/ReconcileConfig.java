@@ -25,4 +25,12 @@ public interface ReconcileConfig {
      */
     @WithDefault("500")
     int pageSize();
+
+    /**
+     * Enable or disable scheduled reconciliation.
+     * When disabled, reconciliation can only be triggered manually via REST endpoint.
+     * Can be overridden with RECONCILE_SCHEDULER_ENABLED environment variable.
+     */
+    @WithDefault("true")
+    boolean schedulerEnabled();
 }
