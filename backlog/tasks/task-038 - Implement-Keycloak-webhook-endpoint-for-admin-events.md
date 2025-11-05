@@ -1,10 +1,11 @@
 ---
 id: task-038
 title: Implement Keycloak webhook endpoint for admin events
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2025-11-05 10:16'
-updated_date: '2025-11-05 10:17'
+updated_date: '2025-11-05 10:18'
 labels:
   - sprint-4
   - webhook
