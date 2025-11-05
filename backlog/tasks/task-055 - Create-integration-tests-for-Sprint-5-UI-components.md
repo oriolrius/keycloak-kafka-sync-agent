@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@assistant'
 created_date: '2025-11-05 16:55'
-updated_date: '2025-11-05 20:42'
+updated_date: '2025-11-05 20:50'
 labels:
   - testing
   - integration
@@ -22,14 +22,14 @@ Develop comprehensive integration tests for the UI and API endpoints covering da
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 API endpoint tests verify all GET /api/* endpoints return correct data structures
-- [ ] #2 API endpoint tests verify PUT /api/config/retention validation and updates
-- [ ] #3 API endpoint tests verify POST /api/reconcile/trigger behavior
-- [ ] #4 Frontend component tests for Dashboard rendering and data display
-- [ ] #5 Frontend component tests for Operation Timeline filtering and pagination
-- [ ] #6 Frontend component tests for Retention Panel form validation and submission
+- [x] #1 API endpoint tests verify all GET /api/* endpoints return correct data structures
+- [x] #2 API endpoint tests verify PUT /api/config/retention validation and updates
+- [x] #3 API endpoint tests verify POST /api/reconcile/trigger behavior
+- [x] #4 Frontend component tests for Dashboard rendering and data display
+- [x] #5 Frontend component tests for Operation Timeline filtering and pagination
+- [x] #6 Frontend component tests for Retention Panel form validation and submission
 - [ ] #7 E2E test with Testcontainers verifying full stack (backend + UI)
-- [ ] #8 Tests verify authentication enforcement on protected endpoints
+- [x] #8 Tests verify authentication enforcement on protected endpoints
 - [ ] #9 All tests pass in CI pipeline
 <!-- AC:END -->
 
