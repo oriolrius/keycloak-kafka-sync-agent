@@ -1,7 +1,7 @@
 ---
 id: task-044
 title: Add Prometheus metrics for webhook and retry operations
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2025-11-05 10:16'
