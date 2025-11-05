@@ -1,9 +1,11 @@
 ---
 id: task-022
 title: Create domain models for sync operations and batches
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2025-11-04 18:35'
+updated_date: '2025-11-05 04:34'
 labels:
   - backend
   - domain
