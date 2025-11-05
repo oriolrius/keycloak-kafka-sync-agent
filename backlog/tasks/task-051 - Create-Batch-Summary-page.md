@@ -51,3 +51,63 @@ Implement the batch summary page displaying reconciliation cycle information inc
 8. Create Playwright UI tests for Batches page in frontend/tests/batches.spec.ts
 9. Run tests and fix any issues
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+## Implementation Summary
+
+Successfully implemented the Batch Summary page with all requested features.
+
+## Changes Made
+
+### Frontend Type Definitions (frontend/src/types/api.ts)
+- Updated `BatchResponse` interface to match backend DTO:
+  - Added `correlationId`, `source`, `itemsTotal`, `itemsSuccess`, `itemsError`
+  - Changed `startTime` to `startedAt`, `endTime` to `finishedAt`
+  - Added `complete` boolean field
+- Extended `BatchesQueryParams` to support filtering by source and time range
+
+### Batches Page Component (frontend/src/pages/Batches.tsx)
+- Created comprehensive paginated table with all required columns
+- Implemented client-side sorting on: start time, duration, items total, success rate
+- Added filters for: source type (SCHEDULED/MANUAL/WEBHOOK), time range (start/end)
+- Calculated and displayed success rate percentage with color-coded badges
+- Formatted duration display (ms, seconds, minutes)
+- Added expandable row details showing batch ID, correlation ID, duration
+- Included link to view related operations (filters Operations page by correlation ID)
+- Implemented CSV export functionality
+- Added real-time updates via TanStack Query (inherits 10s polling from QueryClient config)
+
+### Routing & Navigation
+- Added `/batches` route to App.tsx
+- Added "Batches" navigation link with Layers icon to Layout.tsx
+
+### UI Components Used
+- Table, Card, Button, Input, Select, Badge, Collapsible (shadcn/ui)
+- Status badges: Completed (green), Running (blue)
+- Source badges: SCHEDULED (blue), MANUAL (purple), WEBHOOK (orange)
+- Success rate badges: 100% (green), 80-99% (yellow), <80% (red)
+
+### Testing (tests/ui/batches.spec.ts)
+- Created comprehensive Playwright test suite with 23 tests
+- All tests passing (100%)
+- Test coverage includes:
+  - Page rendering and navigation
+  - Table display and data loading
+  - Filtering (source type, time range)
+  - Sorting functionality
+  - Row expansion for details
+  - Badge rendering (source, status, success rate)
+  - CSV export button
+  - Pagination controls
+  - Navigation between pages
+
+## Technical Notes
+
+- Backend API already existed at `/api/batches` with proper DTOs
+- Reused existing `useBatches` hook and `apiClient.getBatches()` method
+- Followed Operations.tsx pattern for consistency
+- Real-time updates work automatically via TanStack Query's refetchInterval
+- Tests are resilient to empty data states
+<!-- SECTION:NOTES:END -->
