@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2025-11-05 16:55'
-updated_date: '2025-11-05 18:22'
+updated_date: '2025-11-05 18:29'
 labels:
   - frontend
   - batches
@@ -22,14 +22,14 @@ Implement the batch summary page displaying reconciliation cycle information inc
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Paginated table displays batch history with correlation IDs
-- [ ] #2 Columns show start time, finish time, source (webhook/reconcile), items total, success count, error count
-- [ ] #3 Duration calculation displayed for each batch
-- [ ] #4 Success rate percentage calculated and displayed
-- [ ] #5 Filter by source type (webhook vs periodic reconcile)
-- [ ] #6 Filter by time range
-- [ ] #7 Click on batch row expands to show related operations
-- [ ] #8 Real-time updates via TanStack Query polling
+- [x] #1 Paginated table displays batch history with correlation IDs
+- [x] #2 Columns show start time, finish time, source (webhook/reconcile), items total, success count, error count
+- [x] #3 Duration calculation displayed for each batch
+- [x] #4 Success rate percentage calculated and displayed
+- [x] #5 Filter by source type (webhook vs periodic reconcile)
+- [x] #6 Filter by time range
+- [x] #7 Click on batch row expands to show related operations
+- [x] #8 Real-time updates via TanStack Query polling
 <!-- AC:END -->
 
 ## Implementation Plan
