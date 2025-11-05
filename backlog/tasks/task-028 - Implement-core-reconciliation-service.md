@@ -1,9 +1,11 @@
 ---
 id: task-028
 title: Implement core reconciliation service
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2025-11-04 18:35'
+updated_date: '2025-11-05 05:09'
 labels:
   - backend
   - sync
