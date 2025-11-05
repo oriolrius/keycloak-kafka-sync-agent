@@ -35,3 +35,14 @@ Implement Micrometer-based metrics for the reconciliation engine. Track counters
 - [ ] #12 /q/metrics endpoint exposes all new metrics in Prometheus format
 - [ ] #13 Integration test validates metrics are incremented during reconciliation
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Review existing service structure and identify integration points
+2. Create MetricsService with Micrometer instruments (counters, gauges, timers)
+3. Integrate metrics into ReconciliationService, KeycloakService, and KafkaAdminService
+4. Add database size gauge calculation
+5. Test metrics endpoint and add integration test
+6. Verify all metrics appear in /q/metrics endpoint
+<!-- SECTION:PLAN:END -->
