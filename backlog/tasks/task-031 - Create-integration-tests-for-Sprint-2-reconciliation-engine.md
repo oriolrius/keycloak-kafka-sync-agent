@@ -1,7 +1,7 @@
 ---
 id: task-031
 title: Create integration tests for Sprint 2 reconciliation engine
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2025-11-04 18:35'
