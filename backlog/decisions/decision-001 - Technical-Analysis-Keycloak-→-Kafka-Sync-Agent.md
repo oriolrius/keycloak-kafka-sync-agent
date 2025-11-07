@@ -4,7 +4,6 @@ title: 'Technical Analysis: Keycloak → Kafka Sync Agent'
 date: '2025-11-04 13:47'
 status: proposed
 ---
-
 ## Technical Analysis: Keycloak → Kafka Sync Agent (Enhanced Edition)
 
 ### 1. Service Objectives
@@ -46,25 +45,21 @@ status: proposed
    * **Periodic Reconcile:** every N seconds (default 120s), the agent fetches all Keycloak users, clients, and roles to compute and apply diffs.
    * **Webhook Events:** Keycloak sends Admin Events (`POST /api/kc/events`); the agent validates the signature and enqueues processing tasks.
    * The agent always performs periodic reconciliation to recover from potential missed webhook events.
-
 2. **Materialization into Kafka:**
 
    * Compute diffs between Keycloak and Kafka states (upserts/deletes).
    * Execute batch AdminClient operations.
    * Log all results into SQLite (`sync_operation`, `sync_batch`).
-
 3. **Round-Robin Retention:**
 
    * **By Space:** limit in MB/GB — purge oldest entries until below threshold.
    * **By Time:** TTL (days) — purge records older than `now() - TTL`.
    * **Execution:** scheduled after each batch and periodically every N minutes.
    * **Guarantees:** idempotent operations with transactional integrity.
-
 4. **Telemetry:**
 
    * Prometheus counters, gauges, and histograms for each phase (Keycloak fetch, diff computation, Kafka admin operations, purges).
    * Labels: `realm`, `cluster`, `op_type` (UPSERT/DELETE), `status` (SUCCESS/ERROR), `retry`.
-
 5. **User Interface:**
 
    * Dashboard provides real-time connection status with Kafka and Keycloak.
