@@ -163,7 +163,17 @@ public class ReconciliationService {
                 // Generate credentials for upserts
                 Map<String, CredentialSpec> credentialSpecs = new HashMap<>();
                 for (KeycloakUserInfo user : syncPlan.getUpserts()) {
-                    String password = generateRandomPassword();
+                    // Try to get real password from webhook cache first
+                    String password = com.miimetiq.keycloak.sync.webhook.PasswordWebhookResource.getPasswordForUser(user.getUsername());
+
+                    // Fallback to random password if not available
+                    if (password == null || password.isEmpty()) {
+                        password = generateRandomPassword();
+                        LOG.warnf("No password from webhook for user %s, using random password", user.getUsername());
+                    } else {
+                        LOG.infof("Using real password from webhook for user %s", user.getUsername());
+                    }
+
                     credentialSpecs.put(user.getUsername(), new CredentialSpec(DEFAULT_MECHANISM, password, DEFAULT_ITERATIONS));
                 }
 

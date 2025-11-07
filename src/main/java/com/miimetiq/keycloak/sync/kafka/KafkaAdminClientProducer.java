@@ -34,7 +34,7 @@ public class KafkaAdminClientProducer {
         // Basic configuration
         configs.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaConfig.bootstrapServers());
         configs.put(AdminClientConfig.REQUEST_TIMEOUT_MS_CONFIG, kafkaConfig.requestTimeoutMs());
-        configs.put(AdminClientConfig.DEFAULT_API_TIMEOUT_MS_CONFIG, kafkaConfig.connectionTimeoutMs());
+        configs.put(AdminClientConfig.DEFAULT_API_TIMEOUT_MS_CONFIG, kafkaConfig.defaultApiTimeoutMs());
 
         // Security protocol
         String securityProtocol = kafkaConfig.securityProtocol();

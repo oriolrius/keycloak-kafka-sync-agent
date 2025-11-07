@@ -17,6 +17,7 @@ RUN ./mvnw dependency:go-offline
 
 # Copy source code
 COPY src ./src
+COPY frontend ./frontend
 
 # Build the application
 RUN ./mvnw package -DskipTests

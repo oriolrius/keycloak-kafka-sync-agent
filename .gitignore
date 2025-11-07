@@ -6,6 +6,15 @@ pom.xml.versionsBackup
 release.properties
 .flattened-pom.xml
 
+# Keycloak SPI build artifacts
+keycloak-password-sync-spi/target/
+
+# Certificate backups
+testing/certs/backup-*/
+
+# Temporary test environments
+scram-test/data/
+
 # Eclipse
 .project
 .classpath
@@ -68,3 +77,5 @@ playwright-report/
 
 # Playwright MCP
 .playwright-mcp/
+
+scram-test/data/

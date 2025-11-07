@@ -14,10 +14,15 @@
     "test:ui:debug": "playwright test --debug --config=tests/playwright-ui.config.ts",
     "test:ui:report": "playwright show-report tests/test-results/html-ui",
     "test:all": "npm run test:api && npm run test:ui",
+    "test:scram-e2e": "playwright test tests/api/scram-authentication-e2e.spec.ts --config=tests/playwright.config.ts",
+    "test:scram-e2e:headed": "playwright test tests/api/scram-authentication-e2e.spec.ts --headed --config=tests/playwright.config.ts",
+    "test:scram-e2e:debug": "playwright test tests/api/scram-authentication-e2e.spec.ts --debug --config=tests/playwright.config.ts",
     "test:install": "playwright install chromium"
   },
   "devDependencies": {
-    "@playwright/test": "^1.49.0"
+    "@playwright/test": "^1.49.0",
+    "@types/node": "^20.10.0",
+    "kafkajs": "^2.2.4"
   },
   "keywords": [
     "testing",

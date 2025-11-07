@@ -4,7 +4,14 @@ FROM apache/kafka:4.1.0
 USER root
 RUN apk add --no-cache netcat-openbsd
 
+# Copy custom configuration
+COPY kafka-config/server.properties /opt/kafka/config/kraft/server.properties
+COPY kafka-config/kafka_server_jaas.conf /opt/kafka/config/kraft/kafka_server_jaas.conf
+COPY kafka-config/kafka-entrypoint.sh /usr/local/bin/kafka-entrypoint.sh
+RUN chmod +x /usr/local/bin/kafka-entrypoint.sh
+
 # Switch back to appuser
 USER appuser
 
-# Keep the original entrypoint
+# Use custom entrypoint
+ENTRYPOINT ["/usr/local/bin/kafka-entrypoint.sh"]

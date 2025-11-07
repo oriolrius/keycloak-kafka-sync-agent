@@ -6,6 +6,7 @@
 !mvnw
 !.mvn/
 !src/
+!frontend/
 
 # Include pre-built artifacts (for alternative build approach)
 !target/*-runner

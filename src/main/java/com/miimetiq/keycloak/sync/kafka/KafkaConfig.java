@@ -79,4 +79,11 @@ public interface KafkaConfig {
      */
     @WithDefault("10000")
     int connectionTimeoutMs();
+
+    /**
+     * Default API timeout in milliseconds.
+     * Must be >= request.timeout.ms.
+     */
+    @WithDefault("60000")
+    int defaultApiTimeoutMs();
 }

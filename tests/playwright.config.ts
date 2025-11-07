@@ -22,7 +22,7 @@ export default defineConfig({
 
   /* Reporter to use */
   reporter: [
-    ['html', { outputFolder: 'test-results/html' }],
+    ['html', { outputFolder: 'test-results/html', open: 'never' }],
     ['json', { outputFile: 'test-results/results.json' }],
     ['list']
   ],
@@ -52,9 +52,10 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: './mvnw quarkus:dev',
-    url: 'http://localhost:57010/q/health/ready',
-    reuseExistingServer: !process.env.CI,
+    command: 'cd .. && ./mvnw quarkus:dev',
+    url: 'http://localhost:57010/healthz',
+    reuseExistingServer: true, // Always reuse existing server (likely already running)
     timeout: 120 * 1000, // 2 minutes for Quarkus to start
+    cwd: '..',
   },
 });
