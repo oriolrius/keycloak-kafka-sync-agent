@@ -1,7 +1,7 @@
 ---
 id: task-061
 title: Copy SCRAM credential generator to SPI module
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2025-11-09 11:17'
