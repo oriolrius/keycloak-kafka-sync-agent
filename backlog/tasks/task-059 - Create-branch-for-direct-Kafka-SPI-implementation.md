@@ -1,9 +1,11 @@
 ---
 id: task-059
 title: Create branch for direct Kafka SPI implementation
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2025-11-09 11:17'
+updated_date: '2025-11-09 11:38'
 labels:
   - setup
   - architecture
