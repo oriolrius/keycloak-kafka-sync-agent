@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@assistant'
 created_date: '2025-11-09 12:32'
-updated_date: '2025-11-09 12:34'
+updated_date: '2025-11-09 12:35'
 labels:
   - spi
   - build
@@ -24,7 +24,7 @@ The Keycloak Password Sync SPI currently builds a slim JAR without bundling its 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [x] #1 SPI pom.xml configured with maven-shade-plugin or maven-assembly-plugin
-- [ ] #2 Uber JAR includes Kafka client dependencies and transitive dependencies
+- [x] #2 Uber JAR includes Kafka client dependencies and transitive dependencies
 - [ ] #3 Keycloak starts successfully with the new SPI JAR loaded
 - [ ] #4 SPI logs confirm it loaded correctly in Keycloak
 - [ ] #5 E2E tests from task-64 pass with the deployed SPI
