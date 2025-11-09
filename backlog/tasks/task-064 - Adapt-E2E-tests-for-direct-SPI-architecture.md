@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2025-11-09 11:18'
-updated_date: '2025-11-09 12:23'
+updated_date: '2025-11-09 12:26'
 labels:
   - testing
   - e2e
@@ -22,10 +22,10 @@ Modify existing E2E tests in tests/api/scram-authentication-e2e.spec.ts to work 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 E2E test no longer waits for webhook cache or reconciliation
-- [ ] #2 Test validates immediate SCRAM credential creation on password set
-- [ ] #3 Test verifies SCRAM authentication works immediately after user creation
-- [ ] #4 Test confirms Kafka downtime prevents password changes
+- [x] #1 E2E test no longer waits for webhook cache or reconciliation
+- [x] #2 Test validates immediate SCRAM credential creation on password set
+- [x] #3 Test verifies SCRAM authentication works immediately after user creation
+- [x] #4 Test confirms Kafka downtime prevents password changes
 - [ ] #5 All E2E tests pass with direct SPI architecture
 <!-- AC:END -->
 
