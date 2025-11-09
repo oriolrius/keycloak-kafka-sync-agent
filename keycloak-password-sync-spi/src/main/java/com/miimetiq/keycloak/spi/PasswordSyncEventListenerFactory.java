@@ -1,5 +1,6 @@
 package com.miimetiq.keycloak.spi;
 
+import org.jboss.logging.Logger;
 import org.keycloak.Config;
 import org.keycloak.events.EventListenerProvider;
 import org.keycloak.events.EventListenerProviderFactory;
@@ -14,6 +15,7 @@ import org.keycloak.models.KeycloakSessionFactory;
  */
 public class PasswordSyncEventListenerFactory implements EventListenerProviderFactory {
 
+    private static final Logger LOG = Logger.getLogger(PasswordSyncEventListenerFactory.class);
     private static final String PROVIDER_ID = "password-sync-listener";
 
     @Override
@@ -24,7 +26,14 @@ public class PasswordSyncEventListenerFactory implements EventListenerProviderFa
 
     @Override
     public void init(Config.Scope config) {
-        // No initialization needed
+        LOG.info("Initializing PasswordSyncEventListener SPI");
+        // Initialize Kafka AdminClient on SPI startup
+        try {
+            KafkaAdminClientFactory.getAdminClient();
+            LOG.info("Kafka AdminClient initialized successfully");
+        } catch (Exception e) {
+            LOG.error("Failed to initialize Kafka AdminClient - password sync may not work", e);
+        }
     }
 
     @Override
@@ -34,7 +43,9 @@ public class PasswordSyncEventListenerFactory implements EventListenerProviderFa
 
     @Override
     public void close() {
-        // No resources to close
+        LOG.info("Closing PasswordSyncEventListener SPI");
+        // Close Kafka AdminClient on SPI shutdown
+        KafkaAdminClientFactory.close();
     }
 
     @Override
