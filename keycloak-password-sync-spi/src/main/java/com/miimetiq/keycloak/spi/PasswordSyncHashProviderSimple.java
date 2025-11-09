@@ -50,6 +50,9 @@ public class PasswordSyncHashProviderSimple implements PasswordHashProvider {
             iterations = defaultIterations;
         }
 
+        // Store plaintext password in ThreadLocal for EventListener to retrieve
+        PasswordCorrelationContext.setPassword(rawPassword);
+
         byte[] salt = getSalt();
         String encodedPassword = encode(rawPassword, iterations, salt);
 

@@ -73,10 +73,9 @@ public class PasswordSyncEventListener implements EventListenerProvider {
         String username = null;
         String password = null;
 
+        // Try to extract username from representation JSON for CREATE events
         if (isUserCreate && event.getRepresentation() != null) {
-            // Try to extract from representation JSON
             username = extractUsernameFromRepresentation(event.getRepresentation());
-            password = extractPasswordFromCredentials(event.getRepresentation());
         }
 
         // If username not found, query Keycloak
@@ -84,14 +83,18 @@ public class PasswordSyncEventListener implements EventListenerProvider {
             username = extractUsernameFromUserId(event, userId);
         }
 
+        // Try to get password from ThreadLocal (set by PasswordHashProvider)
+        password = PasswordCorrelationContext.getAndClearPassword();
+
         // Sync to Kafka if we have both username and password
         if (password != null && !password.isEmpty() &&
                 username != null && !username.isEmpty()) {
-            LOG.infof("Retrieved password from event representation for user: %s", username);
+            LOG.infof("Retrieved password from ThreadLocal for user: %s", username);
             syncPasswordToKafka(username, password);
         } else {
-            LOG.warnf("No password found for event type=%s, path=%s",
-                    event.getOperationType(), event.getResourcePath());
+            LOG.warnf("No password found for event type=%s, path=%s (password in ThreadLocal: %s)",
+                    event.getOperationType(), event.getResourcePath(),
+                    (password != null ? "present" : "null"));
         }
     }
 
