@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2025-11-09 11:18'
-updated_date: '2025-11-09 12:05'
+updated_date: '2025-11-09 12:08'
 labels:
   - spi
   - core-logic
@@ -22,11 +22,11 @@ Modify the PasswordHashProviderSimple to sync passwords directly to Kafka on pas
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 On password update, SCRAM credentials are generated and sent to Kafka
-- [ ] #2 Successful Kafka sync allows password change to complete
-- [ ] #3 Kafka connection failure causes password change to fail with error message
-- [ ] #4 Error message clearly indicates Kafka connectivity issue
-- [ ] #5 Password change transaction is atomic (both succeed or both fail)
+- [x] #1 On password update, SCRAM credentials are generated and sent to Kafka
+- [x] #2 Successful Kafka sync allows password change to complete
+- [x] #3 Kafka connection failure causes password change to fail with error message
+- [x] #4 Error message clearly indicates Kafka connectivity issue
+- [x] #5 Password change transaction is atomic (both succeed or both fail)
 <!-- AC:END -->
 
 ## Implementation Plan
