@@ -1,9 +1,11 @@
 ---
 id: task-063
 title: Remove webhook and cache code from SPI branch
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2025-11-09 11:18'
+updated_date: '2025-11-09 12:14'
 labels:
   - cleanup
   - spi
