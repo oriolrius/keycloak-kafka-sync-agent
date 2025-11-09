@@ -1,11 +1,11 @@
 ---
 id: task-064
 title: Adapt E2E tests for direct SPI architecture
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2025-11-09 11:18'
-updated_date: '2025-11-09 12:30'
+updated_date: '2025-11-09 12:31'
 labels:
   - testing
   - e2e
