@@ -11,7 +11,7 @@ import org.keycloak.models.KeycloakSessionFactory;
  * Factory for PasswordSyncEventListener.
  *
  * This factory creates event listener instances that intercept password-related
- * admin events and send them to the sync-agent webhook.
+ * admin events and synchronize passwords directly to Kafka SCRAM credentials.
  */
 public class PasswordSyncEventListenerFactory implements EventListenerProviderFactory {
 

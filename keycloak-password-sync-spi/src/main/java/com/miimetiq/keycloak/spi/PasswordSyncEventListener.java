@@ -16,9 +16,8 @@ import org.keycloak.models.UserModel;
  * Event listener that intercepts password-related admin events and syncs
  * passwords directly to Kafka SCRAM credentials.
  *
- * This listener retrieves passwords from the ThreadLocal context set by
- * PasswordSyncHashProviderSimple, queries Keycloak for usernames, and
- * synchronizes to Kafka using AdminClient API.
+ * This listener retrieves passwords from event representations, queries
+ * Keycloak for usernames, and synchronizes to Kafka using AdminClient API.
  */
 public class PasswordSyncEventListener implements EventListenerProvider {
 
@@ -85,15 +84,10 @@ public class PasswordSyncEventListener implements EventListenerProvider {
             username = extractUsernameFromUserId(event, userId);
         }
 
-        // Retrieve password from correlation context if not found in representation
-        if (password == null || password.isEmpty()) {
-            password = PasswordCorrelationContext.getAndClearPassword();
-        }
-
         // Sync to Kafka if we have both username and password
         if (password != null && !password.isEmpty() &&
                 username != null && !username.isEmpty()) {
-            LOG.infof("Retrieved password from correlation context for user: %s", username);
+            LOG.infof("Retrieved password from event representation for user: %s", username);
             syncPasswordToKafka(username, password);
         } else {
             LOG.warnf("No password found for event type=%s, path=%s",

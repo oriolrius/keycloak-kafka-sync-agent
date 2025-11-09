@@ -13,8 +13,7 @@ import java.security.spec.KeySpec;
 import java.util.Base64;
 
 /**
- * Password hash provider that intercepts plaintext passwords BEFORE hashing
- * and stores them in ThreadLocal for retrieval by the EventListener.
+ * Password hash provider that implements PBKDF2-SHA256 for Keycloak password hashing.
  *
  * This provider implements the same PBKDF2-SHA256 algorithm as Keycloak's
  * built-in provider, ensuring password verification works correctly.
@@ -47,9 +46,6 @@ public class PasswordSyncHashProviderSimple implements PasswordHashProvider {
 
     @Override
     public PasswordCredentialModel encodedCredential(String rawPassword, int iterations) {
-        // CRITICAL: Store password in correlation context BEFORE hashing
-        PasswordCorrelationContext.setPassword(rawPassword);
-
         if (iterations == -1) {
             iterations = defaultIterations;
         }
