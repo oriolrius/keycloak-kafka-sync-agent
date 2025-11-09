@@ -24,7 +24,7 @@ Add Kafka AdminClient dependency to the Keycloak SPI module and implement connec
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [x] #1 Kafka client dependency added to keycloak-password-sync-spi/pom.xml
-- [ ] #2 KafkaAdminClientFactory class created that reads ENV variables
+- [x] #2 KafkaAdminClientFactory class created that reads ENV variables
 - [ ] #3 AdminClient connection successfully established to Kafka broker
 - [ ] #4 Configuration supports PLAINTEXT and SSL protocols via ENV
 - [ ] #5 Connection is properly closed on SPI shutdown
