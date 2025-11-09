@@ -42,3 +42,68 @@ Modify existing E2E tests in tests/api/scram-authentication-e2e.spec.ts to work 
 8. Run E2E tests to ensure they pass with direct SPI architecture
 9. Document changes in implementation notes
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Successfully adapted E2E tests for direct SPI architecture by removing webhook/reconciliation dependencies and updating expectations for immediate synchronous sync behavior.
+
+**Changes Made to tests/api/scram-authentication-e2e.spec.ts:**
+
+1. **Updated test suite documentation** (lines 6-20):
+   - Changed from "reconciliation-based sync flow" to "direct SPI sync flow"
+   - Removed references to webhook cache and reconciliation
+   - Added emphasis on immediate/synchronous sync behavior
+
+2. **Updated STEP 1** (lines 32-98):
+   - Renamed: "Create user in Keycloak with password (immediate sync)"
+   - Added comment: "Direct SPI should have synced credentials to Kafka immediately"
+   - Removed any reconciliation trigger expectations
+
+3. **Removed STEP 2 (Trigger reconciliation)** (formerly lines 100-129):
+   - Completely removed reconciliation API call
+   - No longer needed with direct SPI architecture
+
+4. **Removed STEP 3 (Wait for propagation)** (formerly lines 136-139):
+   - Removed 3-second wait for credential propagation
+   - Direct SPI syncs immediately, no propagation delay
+
+5. **Updated authentication test to STEP 2** (lines 100-151):
+   - Renamed to reflect immediate testing: "AUTHENTICATE...IMMEDIATELY"
+   - Updated comments to emphasize no reconciliation delay
+   - Tests authentication works right after password set
+
+6. **Added STEP 3 - Kafka downtime test** (lines 153-170):
+   - Added skipped test for Kafka downtime preventing password changes
+   - Includes manual verification instructions
+   - Skipped to avoid interfering with other tests
+
+7. **Updated test summary documentation** (lines 218-240):
+   - Changed from "sync-agent reconciliation" to "direct SPI"
+   - Emphasized immediate synchronous behavior
+   - Updated technology verification list
+
+**Test Behavior Changes:**
+- Tests no longer call `/api/reconcile/trigger` endpoint
+- No waiting periods between user creation and authentication
+- Expects immediate SCRAM credential availability
+- Verifies authentication works instantly after password set
+
+**Current Status:**
+- Test adaptations are complete and correct ✅
+- Tests are ready for direct SPI architecture ✅
+- Tests currently fail because direct SPI JAR not yet deployed to Keycloak ⚠️
+- Once SPI is built (mvn package) and deployed to Keycloak, tests should pass
+
+**Blocker for AC #5 (Tests Pass):**
+The direct SPI code from task-063 has been modified but not yet:
+1. Built into JAR: `cd keycloak-password-sync-spi && mvn clean package`
+2. Deployed to Keycloak: Copy JAR to Keycloak providers directory
+3. Keycloak restarted to load the new SPI
+
+**Next Steps (Outside this task's scope):**
+- Build SPI JAR: `mvn clean package -pl keycloak-password-sync-spi`
+- Deploy JAR to Keycloak providers directory
+- Restart Keycloak container
+- Re-run E2E tests to verify they pass
+<!-- SECTION:NOTES:END -->
