@@ -10,14 +10,85 @@
 
 The Keycloak → Kafka Sync Agent acts as a real-time identity and authorization bridge. Built on Quarkus, it synchronizes users, clients, and roles from Keycloak into Kafka's metadata store—managing SCRAM verifiers and ACLs dynamically, recording every operation in SQLite, and exposing telemetry and a dashboard for full operational transparency.
 
-## Features
+## Features Overview
 
-- 🔄 **Real-time Event Processing**: Listens to Keycloak admin events via webhooks
-- 📊 **Periodic Reconciliation**: Regularly syncs all users to ensure consistency
-- 💾 **Event Persistence**: SQLite-based event storage with automatic retention management
-- 📈 **Metrics & Health**: Prometheus metrics and health check endpoints
-- 🐳 **Docker Ready**: Multi-stage optimized Docker builds
-- 🔧 **Flexible Configuration**: Environment variable-based configuration
+### Core Capabilities
+- 🔄 **Real-time Event Processing**: Listens to Keycloak admin events via webhooks with HMAC-SHA256 validation
+- 📊 **Periodic Reconciliation**: Scheduled syncs (120s default) with manual trigger support
+- 💾 **Event Persistence**: SQLite database with Flyway migrations and automatic retention management
+- 📈 **Prometheus Metrics**: 20+ custom metrics with dimensional tags (realm, cluster, operation type)
+- 🏥 **Health Checks**: 3 endpoints (/health, /healthz, /readyz) with circuit breaker fault tolerance
+- 🎨 **React Dashboard**: Real-time UI with charts, operation logs, and configuration editor
+- 🐳 **Docker Ready**: Multi-stage Alpine-based builds (~200MB) with security hardening
+- 🔧 **Flexible Configuration**: 50+ environment variables for comprehensive customization
+
+### Web Dashboard (React 19 + TypeScript)
+- **Dashboard Page**: Real-time metrics summary with Recharts visualizations, health status cards, manual reconciliation trigger
+- **Operations Page**: Paginated operation history with filters, sorting, CSV export, and detail expansion
+- **Batches Page**: Reconciliation batch history with success/error counts and duration tracking
+- **Login Page**: Basic Auth or OIDC/Keycloak integration with protected routes
+- **Features**: Dark/light mode toggle, auto-refresh (3-5s intervals), inline retention config editor
+
+### Metrics & Observability
+
+**Custom Prometheus Metrics (20+)**:
+- **Counters**: `sync_kc_fetch_total`, `sync_kafka_scram_upserts_total`, `sync_kafka_scram_deletes_total`, `sync_webhook_received_total`, `sync_retry_total`
+- **Timers**: `sync_reconcile_duration_seconds`, `sync_admin_op_duration_seconds`, `sync_webhook_processing_duration_seconds`
+- **Gauges**: `sync_last_success_epoch_seconds`, `sync_db_size_bytes`, `sync_retention_max_bytes`
+
+All metrics include dimensional tags (realm, cluster_id, mechanism, result) for detailed filtering.
+
+### REST API Endpoints
+
+```
+GET  /api/summary                    - Dashboard statistics (ops/hour, error rate, latency percentiles)
+GET  /api/operations                 - Paginated operations (supports filters, sorting, pagination)
+GET  /api/batches                    - Reconciliation batch history
+POST /api/kc/events                  - Webhook endpoint (HMAC-validated)
+POST /api/reconcile/trigger          - Manual reconciliation trigger
+GET  /api/reconcile/status           - Reconciliation status
+GET  /api/config/retention           - Current retention configuration
+PUT  /api/config/retention           - Update retention policies
+GET  /health, /healthz, /readyz      - Health check endpoints
+GET  /metrics                        - Prometheus metrics
+```
+
+### Security Features
+- **Webhook Security**: HMAC-SHA256 signature validation on all incoming events
+- **Circuit Breaker**: Fault tolerance for Kafka and Keycloak (75% failure threshold, 60s open delay)
+- **SSL/TLS Support**: Kafka and Keycloak SSL/TLS with truststore/keystore configuration
+- **Container Hardening**: Non-root user (quarkus:1001), minimal Alpine base, security scanning
+- **Authentication**: Optional Basic Auth or OIDC for dashboard access
+
+### Architecture Patterns
+- **Event Queue**: Bounded async queue (1000 capacity) with configurable overflow strategy
+- **Retry Policy**: Exponential backoff (1s → 30s) with 3 max attempts
+- **Database**: SQLite with Flyway migrations, indexed queries, and Panache ORM
+- **Design Patterns**: Circuit breaker, scheduled tasks, REST resources, React hooks/context
+
+### Keycloak Password SPI
+A custom Keycloak SPI that intercepts password changes **before** hashing, enabling real password-based SCRAM credential generation:
+- **Location**: `keycloak-password-sync-spi/`
+- **Components**: PasswordSyncEventListener, Factory, SPI registration
+- **Webhook**: `POST /api/webhook/password` with username, password, userId, realmId
+- **Deployment**: Build JAR and mount to Keycloak `providers/` directory
+
+### Database Schema
+The application uses SQLite with 3 core tables:
+- **sync_operation**: Individual operations (SCRAM upserts/deletes, ACL operations) with correlation IDs, timing, and results
+- **sync_batch**: Reconciliation batches with item counts and duration tracking
+- **retention_state**: Single-row configuration table for retention policies and database size tracking
+
+Indexes on `occurred_at`, `principal`, and `op_type` for efficient querying.
+
+### Technology Stack
+- **Backend**: Quarkus 3.29, Java 21, JAX-RS, Hibernate ORM/Panache
+- **Persistence**: SQLite, Flyway migrations
+- **Metrics**: Micrometer, Prometheus
+- **Health**: SmallRye Health, MicroProfile
+- **Fault Tolerance**: SmallRye Fault Tolerance, Circuit Breaker
+- **Frontend**: React 19, TypeScript, Vite, Recharts, Tailwind CSS, Shadcn/ui
+- **Deployment**: Docker Alpine, Multi-stage build
 
 ## Quick Start (Docker Compose)
 
@@ -37,8 +108,10 @@ This starts:
 
 Access the sync agent:
 
+- Dashboard: http://localhost:57010 (React UI with real-time charts and operation logs)
 - Health: http://localhost:57010/health
 - Metrics: http://localhost:57010/metrics
+- API: http://localhost:57010/api/summary
 
 See the [testing/README.md](testing/README.md) for detailed infrastructure documentation.
 
