@@ -1,5 +1,0 @@
-[ v3_ca ]
-basicConstraints=CA:FALSE
-keyUsage=digitalSignature,keyEncipherment
-extendedKeyUsage=serverAuth,clientAuth
-subjectAltName=DNS:kafka.example,DNS:kafka,DNS:broker,DNS:localhost,IP:127.0.0.1

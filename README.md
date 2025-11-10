@@ -37,8 +37,9 @@ keycloak-kafka-sync-agent/
 │   │       └── domain/                              # Domain models
 │   ├── pom.xml                                      # Maven build configuration
 │   └── target/keycloak-password-sync-spi.jar        # Built SPI JAR (after mvn package)
-├── testing/                                         # Docker Compose infrastructure
-├── tests/                                           # E2E tests (Playwright)
+├── tests/                                           # Complete testing suite
+│   ├── infrastructure/                              # Docker Compose stack
+│   └── e2e/                                         # End-to-end tests
 └── backlog/                                         # Project documentation
 ```
 
@@ -91,21 +92,21 @@ export KAFKA_REQUEST_TIMEOUT_MS=30000
 /opt/keycloak/bin/kc.sh start
 ```
 
-## Docker Compose (Testing)
+## Testing
 
-The fastest way to test the complete stack:
+The complete testing suite includes infrastructure and E2E tests:
 
 ```bash
-cd testing/
+# Start testing infrastructure
+cd tests/infrastructure
 make start
+
+# Run E2E tests (both SCRAM-SHA-256 and SCRAM-SHA-512)
+cd tests/e2e
+./test-both-mechanisms.sh
 ```
 
-This starts:
-- **KMS** (Certificate Authority) on port `57001`
-- **Keycloak** (with SPI) on ports `57002` (HTTP) and `57003` (HTTPS)
-- **Kafka** on ports `57004` (PLAINTEXT) and `57005` (SSL)
-
-See [testing/README.md](testing/README.md) for detailed infrastructure documentation.
+See [tests/README.md](tests/README.md) for comprehensive testing documentation.
 
 ## Configuration
 
@@ -190,7 +191,7 @@ KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
 // ✅ Authentication succeeds!
 ```
 
-## Testing
+## Validation
 
 ### Unit Tests
 
@@ -199,16 +200,21 @@ cd src
 mvn test
 ```
 
-### E2E Tests
+### Complete E2E Tests
 
 ```bash
-cd testing/
-make start  # Start infrastructure
-
-cd ..
-npm install
-npm run test:scram-e2e  # Run Playwright E2E tests
+# Automated testing with both SCRAM mechanisms
+cd tests/e2e
+./test-both-mechanisms.sh
 ```
+
+The E2E tests validate:
+- SCRAM-SHA-256 and SCRAM-SHA-512 authentication
+- Password synchronization from Keycloak to Kafka
+- Producer and consumer authentication
+- Complete message flow with authenticated clients
+
+See [tests/README.md](tests/README.md) for detailed testing documentation.
 
 ## Architecture Benefits
 

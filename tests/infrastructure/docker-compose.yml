@@ -1,0 +1,100 @@
+services:
+  # Cosmian KMS - Certificate Authority and PKI
+  kms:
+    image: ${KMS_IMAGE:-ghcr.io/cosmian/kms:latest}
+    hostname: ${KMS_HOSTNAME:-kms.example}
+    container_name: kms
+    ports:
+      - "${KMS_HOST_PORT:-57001}:${KMS_CONTAINER_PORT:-9998}"
+    volumes:
+      - ${KMS_DATA_DIR:-./data/kms}:/root/cosmian-kms
+    networks:
+      - ${NETWORK_NAME:-keycloak-kafka-backbone}
+    restart: unless-stopped
+
+  # Keycloak - Identity Provider (with dev-file)
+  keycloak:
+    image: ${KEYCLOAK_IMAGE:-quay.io/keycloak/keycloak:26.4}
+    hostname: ${KEYCLOAK_HOSTNAME:-keycloak.example}
+    container_name: keycloak
+    command: start-dev
+    environment:
+      # Database configuration (dev-file for development)
+      KC_DB: ${KC_DB:-dev-file}
+
+      # Admin credentials
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-The2password.}
+
+      # Hostname configuration
+      KC_HOSTNAME: ${KEYCLOAK_HOSTNAME:-keycloak.example}
+      KC_HOSTNAME_STRICT: ${KC_HOSTNAME_STRICT:-false}
+      KC_HOSTNAME_STRICT_HTTPS: ${KC_HOSTNAME_STRICT_HTTPS:-false}
+
+      # HTTP configuration (disabled for HTTPS-only)
+      KC_HTTP_ENABLED: ${KC_HTTP_ENABLED:-false}
+
+      # HTTPS configuration
+      KC_HTTPS_ENABLED: ${KC_HTTPS_ENABLED:-true}
+      KC_HTTPS_PORT: ${KEYCLOAK_HTTPS_CONTAINER_PORT:-8443}
+      KC_HTTPS_CERTIFICATE_FILE: ${KC_HTTPS_CERTIFICATE_FILE:-/opt/keycloak/conf/certs/keycloak.crt}
+      KC_HTTPS_CERTIFICATE_KEY_FILE: ${KC_HTTPS_CERTIFICATE_KEY_FILE:-/opt/keycloak/conf/certs/keycloak.key}
+
+      # Development mode
+      KC_LOG_LEVEL: ${KC_LOG_LEVEL:-INFO}
+      KC_METRICS_ENABLED: ${KC_METRICS_ENABLED:-true}
+      KC_HEALTH_ENABLED: ${KC_HEALTH_ENABLED:-true}
+
+      # Kafka SPI Configuration
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka.example:9093}
+      KAFKA_SCRAM_MECHANISM: ${KAFKA_SCRAM_MECHANISM:-256}
+      KAFKA_SECURITY_PROTOCOL: ${KAFKA_SECURITY_PROTOCOL:-SASL_SSL}
+      KAFKA_SASL_MECHANISM: ${KAFKA_SASL_MECHANISM:-SCRAM-SHA-256}
+      KAFKA_SASL_JAAS_CONFIG: ${KAFKA_SASL_JAAS_CONFIG:-org.apache.kafka.common.security.scram.ScramLoginModule required username="admin" password="The2password.";}
+      KAFKA_SSL_TRUSTSTORE_LOCATION: ${KAFKA_SSL_TRUSTSTORE_LOCATION:-/opt/keycloak/conf/certs/kafka.truststore.jks}
+      KAFKA_SSL_TRUSTSTORE_PASSWORD: ${KAFKA_SSL_TRUSTSTORE_PASSWORD:-The2password.}
+      KAFKA_SSL_KEYSTORE_LOCATION: ${KAFKA_SSL_KEYSTORE_LOCATION:-/opt/keycloak/conf/certs/kafka_broker.keystore.jks}
+      KAFKA_SSL_KEYSTORE_PASSWORD: ${KAFKA_SSL_KEYSTORE_PASSWORD:-The2password.}
+      KAFKA_SSL_KEY_PASSWORD: ${KAFKA_SSL_KEY_PASSWORD:-The2password.}
+    ports:
+      - "${KEYCLOAK_HTTPS_HOST_PORT:-57003}:${KEYCLOAK_HTTPS_CONTAINER_PORT:-8443}"
+    volumes:
+      - ${CERTS_DIR:-./certs}:/opt/keycloak/conf/certs:ro
+      - ${KEYCLOAK_DATA_DIR:-./data/keycloak}:/opt/keycloak/data
+      - ../../src/target/keycloak-password-sync-spi.jar:/opt/keycloak/providers/keycloak-password-sync-spi.jar:ro
+    depends_on:
+      - kms
+    networks:
+      - ${NETWORK_NAME:-keycloak-kafka-backbone}
+    restart: unless-stopped
+
+  # Apache Kafka - Message Broker (KRaft mode)
+  kafka:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.kafka
+    image: kafka-testing:latest
+    hostname: ${KAFKA_HOSTNAME:-kafka.example}
+    container_name: kafka
+    ports:
+      - "${KAFKA_SSL_HOST_PORT:-57005}:19093"  # External SASL_SSL listener
+    environment:
+      # Cluster ID for KRaft mode (used by entrypoint script)
+      KAFKA_CLUSTER_ID: ${CLUSTER_ID:-MkU3OEVBNTcwNTJENDM2Qk}
+    volumes:
+      - ${CERTS_DIR:-./certs}/kafka_broker.keystore.jks:/etc/kafka/secrets/kafka_broker.keystore.jks:ro
+      - ${CERTS_DIR:-./certs}/kafka.truststore.jks:/etc/kafka/secrets/kafka.truststore.jks:ro
+      - ${CERTS_DIR:-./certs}/kafka_keystore_creds:/etc/kafka/secrets/kafka_keystore_creds:ro
+      - ${CERTS_DIR:-./certs}/kafka_ssl_key_creds:/etc/kafka/secrets/kafka_ssl_key_creds:ro
+      - ${CERTS_DIR:-./certs}/kafka_truststore_creds:/etc/kafka/secrets/kafka_truststore_creds:ro
+      - ${KAFKA_DATA_DIR:-./data/kafka}:/var/lib/kafka/data
+    depends_on:
+      - kms
+    networks:
+      - ${NETWORK_NAME:-keycloak-kafka-backbone}
+    restart: unless-stopped
+
+networks:
+  keycloak-kafka-backbone:
+    driver: bridge
+    name: ${NETWORK_NAME:-keycloak-kafka-backbone}
