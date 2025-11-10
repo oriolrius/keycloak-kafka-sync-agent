@@ -1,6 +1,14 @@
 # Keycloak ➡️ Kafka Sync Agent
 
-The Keycloak → Kafka Sync Agent acts as a real-time identity and authorization bridge. Built on Quarkus, it synchronizes users, clients, and roles from Keycloak into Kafka’s metadata store—managing SCRAM verifiers and ACLs dynamically, recording every operation in SQLite, and exposing telemetry and a dashboard for full operational transparency.
+> [!IMPORTANT]
+> **⚠️ THIS PROJECT IS NO LONGER MAINTAINED**
+>
+> - **New simplified project**: A new version with simpler architecture that's easier to use and maintain is available at [keycloak-kafka-scram-sync](https://github.com/oriolrius/keycloak-kafka-scram-sync)
+> - **Migration path**: The new project was started from the `feature/direct-kafka-spi` branch of this repository
+> - **Why this repo remains**: This project is kept as reference for its remarkable structure—including Prometheus metrics, dashboard UI, Docker environment variable configurations, and more—serving as an excellent skeleton for future agents
+> - **Mission accomplished**: This project successfully achieved its main purpose: understanding how to hack Keycloak to intercept and sync user credentials to Kafka before they're stored
+
+The Keycloak → Kafka Sync Agent acts as a real-time identity and authorization bridge. Built on Quarkus, it synchronizes users, clients, and roles from Keycloak into Kafka's metadata store—managing SCRAM verifiers and ACLs dynamically, recording every operation in SQLite, and exposing telemetry and a dashboard for full operational transparency.
 
 ## Features
 
